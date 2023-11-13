@@ -11,8 +11,8 @@ type MoverRepository struct {
 	db *sqlx.DB
 }
 
-func NewMoverRepository(db *sqlx.DB) MoverRepository {
-	return MoverRepository{
+func NewMoverRepository(db *sqlx.DB) *MoverRepository {
+	return &MoverRepository{
 		db: db,
 	}
 }

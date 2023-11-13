@@ -35,8 +35,8 @@ type authService struct {
 // 	ParseToken(inputToken string, kind int) (UserInfo, error)
 // }
 
-func NewAuthService(accessSecret, refreshSecret string) authService {
-	return authService{
+func NewAuthService(accessSecret, refreshSecret string) *authService {
+	return &authService{
 		accessSecret:  []byte(accessSecret),
 		refreshSecret: []byte(refreshSecret),
 	}

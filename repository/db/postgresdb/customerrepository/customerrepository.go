@@ -11,8 +11,8 @@ type CustomerRepository struct {
 	db *sqlx.DB
 }
 
-func NewCustomerRepository(db *sqlx.DB) CustomerRepository {
-	return CustomerRepository{
+func NewCustomerRepository(db *sqlx.DB) *CustomerRepository {
+	return &CustomerRepository{
 		db: db,
 	}
 }

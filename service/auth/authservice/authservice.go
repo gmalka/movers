@@ -25,6 +25,41 @@ func NewAuthService(us UserStore, pm PasswordManager, tm TokenManager) authServi
 	}
 }
 
+func (a authService) CheckAccessToken(token string) (model.UserInfo, error) {
+	info, err := a.tm.ParseToken(token, AccessToken)
+	if err != nil {
+		return model.UserInfo{}, fmt.Errorf("cant check token: %v", err)
+	}
+
+	return info, nil
+}
+
+func (a authService) UpdateRefreshToken(token string) (string, error) {
+	info, err := a.tm.ParseToken(token, RefreshToken)
+	if err != nil {
+		return "", fmt.Errorf("cant check token: %v", err)
+	}
+
+	token, err = a.tm.CreateToken(info, RefreshToken)
+	if err != nil {
+		return "", fmt.Errorf("cant create token: %v", err)
+	}
+	return token, nil
+}
+
+func (a authService) UpdateAccessToken(token string) (string, error) {
+	info, err := a.tm.ParseToken(token, RefreshToken)
+	if err != nil {
+		return "", fmt.Errorf("cant check token: %v", err)
+	}
+
+	token, err = a.tm.CreateToken(info, AccessToken)
+	if err != nil {
+		return "", fmt.Errorf("cant create token: %v", err)
+	}
+	return token, nil
+}
+
 func (a authService) Login(username, password string) (model.Tokens, error) {
 	user, err := a.us.GetUser(username)
 	if err != nil {
@@ -58,7 +93,7 @@ func (a authService) Login(username, password string) (model.Tokens, error) {
 	}, nil
 }
 
-func (a authService) Register(username, password, role string) error {
+func (a authService) Register(name, password, role string) error {
 	var err error
 
 	password, err = a.pm.HashPassword(password)
@@ -66,8 +101,19 @@ func (a authService) Register(username, password, role string) error {
 		return fmt.Errorf("cant register user: %v", err)
 	}
 
-	
+	err = a.us.CreateUser(model.User{
+		Name: name,
+		Password: password,
+		Role: role,
+	})
+	if err != nil {
+		return fmt.Errorf("cant register user %s: %v", name, err)
+	}
+
+	return nil
 }
+
+// <----------------INTERFACES---------------->
 
 type UserStore interface {
 	CreateUser(user model.User) error
