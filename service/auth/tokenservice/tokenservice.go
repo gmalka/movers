@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/gmalka/movers/model"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -22,29 +23,26 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
-type UserInfo struct {
-	Name string `json:"name"`
-	Role string `json:"role"`
-}
-
 type authService struct {
 	accessSecret  []byte
 	refreshSecret []byte
 }
 
-type TokenManager interface {
-	CreateToken(userinfo UserInfo, ttl time.Duration, kind int) (string, error)
-	ParseToken(inputToken string, kind int) (UserInfo, error)
-}
+// Прописать там, где будет использоваться
+//
+// type TokenManager interface {
+// 	CreateToken(userinfo UserInfo, ttl time.Duration, kind int) (string, error)
+// 	ParseToken(inputToken string, kind int) (UserInfo, error)
+// }
 
-func NewAuthService(accessSecret, refreshSecret string) TokenManager {
+func NewAuthService(accessSecret, refreshSecret string) authService {
 	return authService{
 		accessSecret:  []byte(accessSecret),
 		refreshSecret: []byte(refreshSecret),
 	}
 }
 
-func (u authService) ParseToken(inputToken string, kind int) (UserInfo, error) {
+func (u authService) ParseToken(inputToken string, kind int) (model.UserInfo, error) {
 	token, err := jwt.Parse(inputToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", token.Header["alg"])
@@ -64,25 +62,36 @@ func (u authService) ParseToken(inputToken string, kind int) (UserInfo, error) {
 	})
 
 	if err != nil {
-		return UserInfo{}, fmt.Errorf("can't parse token: %v", err)
+		return model.UserInfo{}, fmt.Errorf("can't parse token: %v", err)
 	}
 
 	if !token.Valid {
-		return UserInfo{}, errors.New("invalid token")
+		return model.UserInfo{}, errors.New("invalid token")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return UserInfo{}, fmt.Errorf("can't get user claims from token")
+		return model.UserInfo{}, fmt.Errorf("can't get user claims from token")
 	}
 
-	return UserInfo{
-		Name:             claims["name"].(string),
-		Role:             claims["role"].(string),
+	return model.UserInfo{
+		Name: claims["name"].(string),
+		Role: claims["role"].(string),
 	}, nil
 }
 
-func (u authService) CreateToken(userinfo UserInfo, ttl time.Duration, kind int) (string, error) {
+func (u authService) CreateToken(userinfo model.UserInfo, kind int) (string, error) {
+	var ttl time.Duration
+
+	switch kind {
+	case AccessToken:
+		ttl = ACCESS_TOKEN_TTL
+	case RefreshToken:
+		ttl = REFRESH_TOKEN_TTL
+	default:
+		return "", fmt.Errorf("unknown secret kind %d", kind)
+	}
+
 	claims := UserClaims{
 		Name:             userinfo.Name,
 		Role:             userinfo.Role,

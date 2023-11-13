@@ -26,7 +26,7 @@ func (u *UserRepository) CreateUser(user model.User) error {
 	return nil
 }
 
-func (u *UserRepository) CheckUser(name string) (model.User, error) {
+func (u *UserRepository) GetUser(name string) (model.User, error) {
 	row := u.db.QueryRow("SELECT * FROM users WHERE name=$1", name)
 	if row.Err() != nil {
 		return model.User{}, fmt.Errorf("can't find user %s: %v", name, row.Err())
