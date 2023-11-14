@@ -96,6 +96,13 @@ func (a authService) Login(username, password string) (model.Tokens, error) {
 func (a authService) Register(name, password, role string) error {
 	var err error
 
+	if role == "customer" {
+		err = a.us.CheckForCustomerRole()
+		if err != nil {
+			return fmt.Errorf("cant create new customer: %v", err)
+		}
+	}
+
 	password, err = a.pm.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("cant register user: %v", err)
@@ -118,6 +125,7 @@ func (a authService) Register(name, password, role string) error {
 type UserStore interface {
 	CreateUser(user model.User) error
 	GetUser(name string) (model.User, error)
+	CheckForCustomerRole() error
 }
 
 type PasswordManager interface {

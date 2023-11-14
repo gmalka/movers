@@ -9,15 +9,16 @@ import (
 )
 
 type taskService struct {
-	itemcash map[int]model.Item
-	it       itemStore
-	ts       taskStore
+	it itemStore
+	ts taskStore
+	dt doneTasksStore
 }
 
-func NewTaskService(it itemStore, ts taskStore) *taskService {
-	return &taskService{
+func NewTaskService(it itemStore, ts taskStore, dt doneTasksStore) taskService {
+	return taskService{
 		it: it,
 		ts: ts,
+		dt: dt,
 	}
 }
 
@@ -31,7 +32,7 @@ func (t *taskService) GenerateTasks(tocreate int) error {
 		return fmt.Errorf("cant generate tasks; %v", err)
 	}
 
-	t.itemcash = make(map[int]model.Item, 5)
+	itemcash := make(map[int]model.Item, 5)
 	rand.Seed(time.Now().Unix())
 	tasks := make([]model.Task, tocreate)
 	for i := 0; i < tocreate; i++ {
@@ -39,14 +40,14 @@ func (t *taskService) GenerateTasks(tocreate int) error {
 		id := rand.Intn(count)
 
 		var item model.Item
-		if val, ok := t.itemcash[id]; ok {
+		if val, ok := itemcash[id]; ok {
 			item = val
 		} else {
 			item, err = t.it.GetItem(id)
 			if err != nil {
 				return fmt.Errorf("cant generate task; %v", err)
 			}
-			t.itemcash[id] = item
+			itemcash[id] = item
 		}
 
 		task.ItemName = item.Name
@@ -67,8 +68,22 @@ func (t *taskService) GetTasks() ([]model.Task, error) {
 	return t.ts.GetTasks()
 }
 
-func (t *taskService) FinishTask(taskId int) error {
-	return t.ts.DeleteTask(taskId)
+func (t *taskService) GetWorkerTasks(name string) ([]model.Task, error) {
+	return t.dt.GetWorkerTasks(name)
+}
+
+func (t *taskService) FinishTask(workers []string, task model.Task) error {
+	err := t.ts.DeleteTask(task.TaskId)
+	if err != nil {
+		return fmt.Errorf("cant finish task: %v", err)
+	}
+
+	err = t.dt.CompleteTask(workers, task)
+	if err != nil {
+		return fmt.Errorf("cant finish task: %v", err)
+	}
+
+	return nil
 }
 
 // <----------------INTERFACES---------------->
@@ -79,9 +94,13 @@ type itemStore interface {
 	GetItem(id int) (model.Item, error)
 }
 
+type doneTasksStore interface {
+	CompleteTask(workers []string, task model.Task) error
+	GetWorkerTasks(name string) ([]model.Task, error)
+}
+
 type taskStore interface {
 	CreateTasks(tasks []model.Task) error
 	GetTasks() ([]model.Task, error)
 	DeleteTask(taskId int) error
-	DeleteTasks() error
 }

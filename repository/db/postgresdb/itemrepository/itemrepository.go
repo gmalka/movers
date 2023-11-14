@@ -1,6 +1,7 @@
 package itemrepository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -17,8 +18,8 @@ func NewItemService(db *sqlx.DB) *itemService {
 	}
 }
 
-func (i *itemService) CreateItem(item model.Item) error {
-	_, err := i.db.Exec("INSERT INTO items(name,maxweight,minweight,maxprice,minprice) VALUES($1,$2,$3)", item.Name, item.MaxWeight, item.MinWeight)
+func (i *itemService) CreateItem(ctx context.Context, item model.Item) error {
+	_, err := i.db.ExecContext(ctx, "INSERT INTO items(name,maxweight,minweight,maxprice,minprice) VALUES($1,$2,$3)", item.Name, item.MaxWeight, item.MinWeight)
 	if err != nil {
 		return fmt.Errorf("cant create item %s: %v", item.Name, err)
 	}
@@ -26,9 +27,9 @@ func (i *itemService) CreateItem(item model.Item) error {
 	return nil
 }
 
-func (i *itemService) GetItemCount() (int, error) {
+func (i *itemService) GetItemCount(ctx context.Context) (int, error) {
 	var count int
-	row := i.db.QueryRow("SELECT COUNT(id) FROM items")
+	row := i.db.QueryRowContext(ctx, "SELECT COUNT(id) FROM items")
 	if row.Err() != nil {
 		return 0, fmt.Errorf("cant get count of items: %v", row.Err())
 	}
@@ -41,9 +42,9 @@ func (i *itemService) GetItemCount() (int, error) {
 	return count, nil
 }
 
-func (i *itemService) GetItem(id int) (model.Item, error) {
+func (i *itemService) GetItem(ctx context.Context, id int) (model.Item, error) {
 	item := model.Item{}
-	row := i.db.QueryRow("SELECT name,maxweight,minweight FROM items WHERE id=$1", id)
+	row := i.db.QueryRowContext(ctx, "SELECT name,maxweight,minweight FROM items WHERE id=$1", id)
 	if row.Err() != nil {
 		return model.Item{}, fmt.Errorf("cant get item %d: %v", id, row.Err())
 	}

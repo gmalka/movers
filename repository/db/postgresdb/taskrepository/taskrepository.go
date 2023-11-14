@@ -1,6 +1,7 @@
 package taskrepository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -17,15 +18,15 @@ func NewTaskRepository(db *sqlx.DB) *TaskRepository {
 	}
 }
 
-func (t *TaskRepository) CreateTasks(tasks []model.Task) error {
-	tx, err := t.db.Begin()
+func (t *TaskRepository) CreateTasks(ctx context.Context, tasks []model.Task) error {
+	tx, err := t.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("cant create tasks transaction: %v", err)
 	}
 	defer tx.Rollback()
 
 	for _, v := range tasks {
-		_, err = tx.Exec("INSERT INTO tasks(itemname,weight) VALUES($1,$2)", v.ItemName, v.Weight)
+		_, err = tx.ExecContext(ctx, "INSERT INTO tasks(itemname,weight) VALUES($1,$2)", v.ItemName, v.Weight)
 		if err != nil {
 			return fmt.Errorf("cant insert task: %v", err)
 		}
@@ -38,9 +39,9 @@ func (t *TaskRepository) CreateTasks(tasks []model.Task) error {
 	return nil
 }
 
-func (t *TaskRepository) GetTasks() ([]model.Task, error) {
+func (t *TaskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
 	tasks := make([]model.Task, 0, 10)
-	rows, err := t.db.Query("SELECT * FROM tasks")
+	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks")
 	if err != nil {
 		return nil, fmt.Errorf("cant select tasks: %v", err)
 	}
@@ -59,8 +60,8 @@ func (t *TaskRepository) GetTasks() ([]model.Task, error) {
 	return tasks, nil
 }
 
-func (t *TaskRepository) DeleteTask(taskId int) error {
-	_, err := t.db.Exec("DELETE FROM tasks WHERE id=$1", taskId)
+func (t *TaskRepository) DeleteTask(ctx context.Context, taskId int) error {
+	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks WHERE id=$1", taskId)
 	if err != nil {
 		return fmt.Errorf("cant delete task %d: %v", taskId, err)
 	}
@@ -68,8 +69,8 @@ func (t *TaskRepository) DeleteTask(taskId int) error {
 	return nil
 }
 
-func (t *TaskRepository) DeleteTasks() error {
-	_, err := t.db.Exec("DELETE FROM tasks")
+func (t *TaskRepository) DeleteTasks(ctx context.Context, ) error {
+	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks")
 	if err != nil {
 		return fmt.Errorf("cant delete tasks: %v", err)
 	}

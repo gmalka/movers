@@ -1,6 +1,7 @@
 package customerrepository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -17,8 +18,8 @@ func NewCustomerRepository(db *sqlx.DB) *CustomerRepository {
 	}
 }
 
-func (c *CustomerRepository) CreateCustomer(customer model.CustomerInfo) error {
-	_, err := c.db.Exec("INSERT INTO customers VALUES($1,$2)", customer.Name, customer.Money)
+func (c *CustomerRepository) CreateCustomer(ctx context.Context, customer model.CustomerInfo) error {
+	_, err := c.db.ExecContext(ctx, "INSERT INTO customers VALUES($1,$2)", customer.Name, customer.Money)
 	if err != nil {
 		return fmt.Errorf("cant insert customer %s: %v", customer.Name, err)
 	}
@@ -26,8 +27,17 @@ func (c *CustomerRepository) CreateCustomer(customer model.CustomerInfo) error {
 	return nil
 }
 
-func (c *CustomerRepository) GetCustomer(name string) (model.CustomerInfo, error) {
-	row := c.db.QueryRow("SELECT * FROM customers WHERE name = $1", name)
+func (c *CustomerRepository) UpdateCustomer(ctx context.Context, customer model.CustomerInfo) error {
+	_, err := c.db.ExecContext(ctx, "UPDATE customers SET name = $1, money = $2", customer.Name, customer.Money)
+	if err != nil {
+		return fmt.Errorf("cant update customer %s: %v", customer.Name, err)
+	}
+
+	return nil
+}
+
+func (c *CustomerRepository) GetCustomer(ctx context.Context, name string) (model.CustomerInfo, error) {
+	row := c.db.QueryRowContext(ctx, "SELECT * FROM customers WHERE name = $1", name)
 
 	customer := model.CustomerInfo{}
 	err := row.Scan(&customer.Name, &customer.Money)
