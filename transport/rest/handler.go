@@ -8,8 +8,9 @@ import (
 
 	"github.com/gmalka/movers/model"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 )
+
+type UserRequest struct{}
 
 type Log struct {
 	Err *log.Logger
@@ -45,25 +46,26 @@ func NewHandler(game GameIterator, users UserService, tasks TaskService, auth Au
 
 func (h Handler) Init() http.Handler {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
+	//r.Use(middleware.Logger)
 
-		r.Get("/", h.MainMenu)
-		r.Get("/login", h.LoginTemplate)
-		r.Post("/login", h.Login)
+	r.Get("/", h.MainMenu)
+	r.Get("/login", h.LoginTemplate)
+	//r.Post("/login", h.Login)
 
-		r.Get("/register", h.RegisterTemplate)
-		r.Post("/register", h.Regiter)
+	r.Get("/register", h.RegisterTemplate)
+	//r.Post("/register", h.Regiter)
 
-		r.Post("/tasks", h.CreateTasks)
+	r.Get("/tasks", h.CreateTasksTemplate)
+	//r.Post("/tasks", h.CreateTasks)
 
-		r.Route("/{username}", func(r chi.Router) {
-			r.Use(h.checkAccess)
+	// r.Route("/{username}", func(r chi.Router) {
+	// 	r.Use(h.checkAccess)
 
-			r.Get("/", h.UserMenu)
-			r.Get("/tasks", h.GetCompletedTasks)
-			r.Post("/start", h.IterateGame)
-			r.Post("/update", h.DeleteUser)
-		})
+	// 	r.Get("/", h.UserMenu)
+	// 	r.Get("/tasks", h.GetCompletedTasks)
+	// 	r.Post("/start", h.IterateGame)
+	// 	r.Post("/update", h.DeleteUser)
+	// })
 
 	return r
 }

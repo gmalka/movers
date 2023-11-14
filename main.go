@@ -1,26 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/gmalka/movers/transport/rest"
 )
 
 func main() {
-	h := rest.NewHandler(nil, nil, nil, nil, rest.Log{})
+	h := rest.NewHandler(nil, nil, nil, nil, rest.Log{
+		Err: log.Default(),
+		Inf: log.Default(),
+	})
 
 	server := http.Server{
 		Addr:    "localhost:8080",
 		Handler: h.Init(),
 	}
-
-	form := url.Values{}
-	form.Add("login", "login")
-	form.Add("password", "1234")
-
-	fmt.Println(form.Encode())
 
 	server.ListenAndServe()
 }

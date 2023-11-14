@@ -34,8 +34,8 @@ func (h Handler) checkAccess(next http.Handler) http.Handler {
 		}
 
 		username := chi.URLParam(r, "username")
-		if username != u.Username {
-			h.log.Error(fmt.Sprintf("username in token and path are different: %s-%s", username, u.Username))
+		if username != u.Name {
+			h.log.Error(fmt.Sprintf("username in token and path are different: %s-%s", username, u.Name))
 			http.Error(w, "message: invalid resource", http.StatusNotFound)
 			return
 		}
