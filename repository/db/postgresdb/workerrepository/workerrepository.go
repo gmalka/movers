@@ -42,7 +42,7 @@ func (w *WorkerRepository) GetWorker(ctx context.Context, name string) (model.Wo
 	return worker, nil
 }
 
-func (w *WorkerRepository) GetWorkers(ctx context.Context, ) ([]model.WorkerInfo, error) {
+func (w *WorkerRepository) GetWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
 	workers := make([]model.WorkerInfo, 0, 10)
 	rows, err := w.db.QueryContext(ctx, "SELECT * FROM workers")
 	if err != nil {
@@ -67,6 +67,15 @@ func (w *WorkerRepository) UpdateWorker(ctx context.Context, worker model.Worker
 	_, err := w.db.ExecContext(ctx, "UPDATE workers SET name = $1, fatigue = $2, salary = $3, carryweight = $4, drunk = $5", worker.Name, worker.Fatigue, worker.Salary, worker.CarryWeight, worker.Drunk)
 	if err != nil {
 		return fmt.Errorf("cant update worker %s: %v", worker.Name, err)
+	}
+
+	return nil
+}
+
+func (w *WorkerRepository) DeleteWorker(ctx context.Context, name string) error {
+	_, err := w.db.ExecContext(ctx, "DELETE FROM workers WHERE name=$1", name)
+	if err != nil {
+		return fmt.Errorf("cant delete worker %s: %v", name, err)
 	}
 
 	return nil

@@ -13,15 +13,15 @@ type workService struct {
 	tasker    taskFinisher
 }
 
-func NewuserInfoService(customers customerGetter, workers workerGetter, tasker taskFinisher) workService {
-	return workService{
+func NewWorkService(customers customerGetter, workers workerGetter, tasker taskFinisher) *workService {
+	return &workService{
 		customers: customers,
 		workers:   workers,
 		tasker:    tasker,
 	}
 }
 
-func (w workService) CalculateWork(ctx context.Context, customername string, workernames []string, task model.Task) error {
+func (w *workService) CalculateWork(ctx context.Context, customername string, workernames []string, task model.Task) error {
 	customer, err := w.customers.GetCustomer(ctx, customername)
 	if err != nil {
 		return fmt.Errorf("cant calculate work: %v", err)

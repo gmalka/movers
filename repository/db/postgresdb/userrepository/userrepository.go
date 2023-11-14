@@ -54,3 +54,12 @@ func (u *UserRepository) CheckForCustomerRole(ctx context.Context, ) error {
 
 	return nil
 }
+
+func (u *UserRepository) DeleteUser(ctx context.Context, name string)  error {
+	_, err := u.db.ExecContext(ctx, "DELETE FROM users WHERE name=$1", name)
+	if err != nil {
+		return fmt.Errorf("cant delete user %s: %v", name, err)
+	}
+
+	return nil
+}

@@ -36,6 +36,15 @@ func (c *CustomerRepository) UpdateCustomer(ctx context.Context, customer model.
 	return nil
 }
 
+func (c *CustomerRepository) DeleteCustomer(ctx context.Context, name string)  error {
+	_, err := c.db.ExecContext(ctx, "DELETE FROM customers WHERE name=$1", name)
+	if err != nil {
+		return fmt.Errorf("cant delete customer %s: %v", name, err)
+	}
+
+	return nil
+}
+
 func (c *CustomerRepository) GetCustomer(ctx context.Context, name string) (model.CustomerInfo, error) {
 	row := c.db.QueryRowContext(ctx, "SELECT * FROM customers WHERE name = $1", name)
 

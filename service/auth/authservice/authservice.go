@@ -18,15 +18,15 @@ type authService struct {
 	tm TokenManager
 }
 
-func NewAuthService(us UserStore, pm PasswordManager, tm TokenManager) authService {
-	return authService{
+func NewAuthService(us UserStore, pm PasswordManager, tm TokenManager) *authService {
+	return &authService{
 		us: us,
 		pm: pm,
 		tm: tm,
 	}
 }
 
-func (a authService) CheckAccessToken(token string) (model.UserInfo, error) {
+func (a *authService) CheckAccessToken(token string) (model.UserInfo, error) {
 	info, err := a.tm.ParseToken(token, AccessToken)
 	if err != nil {
 		return model.UserInfo{}, fmt.Errorf("cant check token: %v", err)
@@ -35,7 +35,7 @@ func (a authService) CheckAccessToken(token string) (model.UserInfo, error) {
 	return info, nil
 }
 
-func (a authService) UpdateRefreshToken(token string) (string, error) {
+func (a *authService) UpdateRefreshToken(token string) (string, error) {
 	info, err := a.tm.ParseToken(token, RefreshToken)
 	if err != nil {
 		return "", fmt.Errorf("cant check token: %v", err)
@@ -48,7 +48,7 @@ func (a authService) UpdateRefreshToken(token string) (string, error) {
 	return token, nil
 }
 
-func (a authService) UpdateAccessToken(token string) (string, error) {
+func (a *authService) UpdateAccessToken(token string) (string, error) {
 	info, err := a.tm.ParseToken(token, RefreshToken)
 	if err != nil {
 		return "", fmt.Errorf("cant check token: %v", err)
@@ -61,7 +61,7 @@ func (a authService) UpdateAccessToken(token string) (string, error) {
 	return token, nil
 }
 
-func (a authService) Login(ctx context.Context, username, password string) (model.Tokens, error) {
+func (a *authService) Login(ctx context.Context, username, password string) (model.Tokens, error) {
 	user, err := a.us.GetUser(ctx, username)
 	if err != nil {
 		return model.Tokens{}, fmt.Errorf("cant login: %v", err)
@@ -94,7 +94,7 @@ func (a authService) Login(ctx context.Context, username, password string) (mode
 	}, nil
 }
 
-func (a authService) Register(ctx context.Context, name, password, role string) error {
+func (a *authService) Register(ctx context.Context, name, password, role string) error {
 	var err error
 
 	if role == "customer" {
@@ -121,10 +121,15 @@ func (a authService) Register(ctx context.Context, name, password, role string) 
 	return nil
 }
 
+func (a *authService) DeleteUser(ctx context.Context, name string)  error {
+	return a.us.DeleteUser(ctx, name)
+}
+
 // <----------------INTERFACES---------------->
 
 type UserStore interface {
 	CreateUser(ctx context.Context, user model.User) error
+	DeleteUser(ctx context.Context, name string)  error
 	GetUser(ctx context.Context, name string) (model.User, error)
 	CheckForCustomerRole(ctx context.Context) error
 }

@@ -42,7 +42,7 @@ func NewAuthService(accessSecret, refreshSecret string) *authService {
 	}
 }
 
-func (u authService) ParseToken(inputToken string, kind int) (model.UserInfo, error) {
+func (u *authService) ParseToken(inputToken string, kind int) (model.UserInfo, error) {
 	token, err := jwt.Parse(inputToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", token.Header["alg"])
@@ -80,7 +80,7 @@ func (u authService) ParseToken(inputToken string, kind int) (model.UserInfo, er
 	}, nil
 }
 
-func (u authService) CreateToken(userinfo model.UserInfo, kind int) (string, error) {
+func (u *authService) CreateToken(userinfo model.UserInfo, kind int) (string, error) {
 	var ttl time.Duration
 
 	switch kind {

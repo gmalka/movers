@@ -15,8 +15,8 @@ type taskService struct {
 	dt doneTasksStore
 }
 
-func NewTaskService(it itemStore, ts taskStore, dt doneTasksStore) taskService {
-	return taskService{
+func NewTaskService(it itemStore, ts taskStore, dt doneTasksStore) *taskService {
+	return &taskService{
 		it: it,
 		ts: ts,
 		dt: dt,
