@@ -1,6 +1,7 @@
 package userinfoservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -8,18 +9,18 @@ import (
 
 type userInfoService struct {
 	customers customerStorage
-	workers workerStorage
+	workers   workerStorage
 }
 
 func NewuserInfoService(customers customerStorage, workers workerStorage) userInfoService {
 	return userInfoService{
 		customers: customers,
-		workers: workers,
+		workers:   workers,
 	}
 }
 
-func (u *userInfoService) NewCustomer(customer model.CustomerInfo) error {
-	err := u.customers.CreateCustomer(customer)
+func (u *userInfoService) NewCustomer(ctx context.Context, customer model.CustomerInfo) error {
+	err := u.customers.CreateCustomer(ctx, customer)
 	if err != nil {
 		return fmt.Errorf("cant create new customer: %v", err)
 	}
@@ -27,12 +28,12 @@ func (u *userInfoService) NewCustomer(customer model.CustomerInfo) error {
 	return nil
 }
 
-func (u *userInfoService) GetCustomer(name string) (model.CustomerInfo, error) {
-	return u.customers.GetCustomer(name)
+func (u *userInfoService) GetCustomer(ctx context.Context, name string) (model.CustomerInfo, error) {
+	return u.customers.GetCustomer(ctx, name)
 }
 
-func (u *userInfoService) NewWorker(worker model.WorkerInfo) error {
-	err := u.workers.CreateWorker(worker)
+func (u *userInfoService) NewWorker(ctx context.Context, worker model.WorkerInfo) error {
+	err := u.workers.CreateWorker(ctx, worker)
 	if err != nil {
 		return fmt.Errorf("cant create new worker: %v", err)
 	}
@@ -40,23 +41,23 @@ func (u *userInfoService) NewWorker(worker model.WorkerInfo) error {
 	return nil
 }
 
-func (u *userInfoService) GetWorker(name string) (model.WorkerInfo, error) {
-	return u.workers.GetWorker(name)
+func (u *userInfoService) GetWorker(ctx context.Context, name string) (model.WorkerInfo, error) {
+	return u.workers.GetWorker(ctx, name)
 }
 
-func (u *userInfoService) GetWorkers() ([]model.WorkerInfo, error) {
-	return u.workers.GetWorkers()
+func (u *userInfoService) GetWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
+	return u.workers.GetWorkers(ctx)
 }
 
 // <----------------INTERFACES---------------->
 
 type customerStorage interface {
-	CreateCustomer(customer model.CustomerInfo) error
-	GetCustomer(name string) (model.CustomerInfo, error)
+	CreateCustomer(ctx context.Context, customer model.CustomerInfo) error
+	GetCustomer(ctx context.Context, name string) (model.CustomerInfo, error)
 }
 
 type workerStorage interface {
-	CreateWorker(worker model.WorkerInfo) error
-	GetWorker(name string) (model.WorkerInfo, error)
-	GetWorkers() ([]model.WorkerInfo, error)
+	CreateWorker(ctx context.Context, worker model.WorkerInfo) error
+	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
+	GetWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 }

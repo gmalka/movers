@@ -1,6 +1,7 @@
 package taskservice
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
@@ -22,12 +23,12 @@ func NewTaskService(it itemStore, ts taskStore, dt doneTasksStore) taskService {
 	}
 }
 
-func (t *taskService) CreateItem(item model.Item) error {
-	return t.it.CreateItem(item)
+func (t *taskService) CreateItem(ctx context.Context, item model.Item) error {
+	return t.it.CreateItem(ctx, item)
 }
 
-func (t *taskService) GenerateTasks(tocreate int) error {
-	count, err := t.it.GetItemCount()
+func (t *taskService) GenerateTasks(ctx context.Context, tocreate int) error {
+	count, err := t.it.GetItemCount(ctx)
 	if err != nil {
 		return fmt.Errorf("cant generate tasks; %v", err)
 	}
@@ -43,7 +44,7 @@ func (t *taskService) GenerateTasks(tocreate int) error {
 		if val, ok := itemcash[id]; ok {
 			item = val
 		} else {
-			item, err = t.it.GetItem(id)
+			item, err = t.it.GetItem(ctx, id)
 			if err != nil {
 				return fmt.Errorf("cant generate task; %v", err)
 			}
@@ -56,7 +57,7 @@ func (t *taskService) GenerateTasks(tocreate int) error {
 		tasks[i] = task
 	}
 
-	err = t.ts.CreateTasks(tasks)
+	err = t.ts.CreateTasks(ctx, tasks)
 	if err != nil {
 		return fmt.Errorf("cant create tasks: %v", err)
 	}
@@ -64,21 +65,25 @@ func (t *taskService) GenerateTasks(tocreate int) error {
 	return nil
 }
 
-func (t *taskService) GetTasks() ([]model.Task, error) {
-	return t.ts.GetTasks()
+func (t *taskService) GetFirstTask(ctx context.Context) (model.Task, error) {
+	return t.ts.GetFirstTask(ctx)
 }
 
-func (t *taskService) GetWorkerTasks(name string) ([]model.Task, error) {
-	return t.dt.GetWorkerTasks(name)
+func (t *taskService) GetTasks(ctx context.Context) ([]model.Task, error) {
+	return t.ts.GetTasks(ctx)
 }
 
-func (t *taskService) FinishTask(workers []string, task model.Task) error {
-	err := t.ts.DeleteTask(task.TaskId)
+func (t *taskService) GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error) {
+	return t.dt.GetWorkerTasks(ctx, name)
+}
+
+func (t *taskService) FinishTask(ctx context.Context, workers []string, task model.Task) error {
+	err := t.ts.DeleteTask(ctx, task.TaskId)
 	if err != nil {
 		return fmt.Errorf("cant finish task: %v", err)
 	}
 
-	err = t.dt.CompleteTask(workers, task)
+	err = t.dt.CompleteTask(ctx, workers, task)
 	if err != nil {
 		return fmt.Errorf("cant finish task: %v", err)
 	}
@@ -89,18 +94,19 @@ func (t *taskService) FinishTask(workers []string, task model.Task) error {
 // <----------------INTERFACES---------------->
 
 type itemStore interface {
-	CreateItem(item model.Item) error
-	GetItemCount() (int, error)
-	GetItem(id int) (model.Item, error)
+	CreateItem(ctx context.Context, item model.Item) error
+	GetItemCount(ctx context.Context) (int, error)
+	GetItem(ctx context.Context, id int) (model.Item, error)
 }
 
 type doneTasksStore interface {
-	CompleteTask(workers []string, task model.Task) error
-	GetWorkerTasks(name string) ([]model.Task, error)
+	CompleteTask(ctx context.Context, workers []string, task model.Task) error
+	GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error)
 }
 
 type taskStore interface {
-	CreateTasks(tasks []model.Task) error
-	GetTasks() ([]model.Task, error)
-	DeleteTask(taskId int) error
+	CreateTasks(ctx context.Context, tasks []model.Task) error
+	GetFirstTask(ctx context.Context) (model.Task, error)
+	GetTasks(ctx context.Context) ([]model.Task, error)
+	DeleteTask(ctx context.Context, taskId int) error
 }

@@ -39,6 +39,30 @@ func (t *TaskRepository) CreateTasks(ctx context.Context, tasks []model.Task) er
 	return nil
 }
 
+func (t *TaskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
+	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks LIMIT 1")
+	task := model.Task{}
+
+	err := row.Scan(&task.TaskId, &task.ItemName, &task.Weight)
+	if err != nil {
+		return model.Task{}, fmt.Errorf("cant get first task; %v", err)
+	}
+
+	return task, nil
+}
+
+// func (t *TaskRepository) GetTask(ctx context.Context, id int) (model.Task, error) {
+// 	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks WHERE id=$1", id)
+// 	task := model.Task{}
+
+// 	err := row.Scan(&task.TaskId, &task.ItemName, &task.Weight)
+// 	if err != nil {
+// 		return model.Task{}, fmt.Errorf("cant get first task; %v", err)
+// 	}
+
+// 	return task, nil
+// }
+
 func (t *TaskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
 	tasks := make([]model.Task, 0, 10)
 	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks")

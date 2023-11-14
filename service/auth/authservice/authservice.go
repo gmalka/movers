@@ -1,6 +1,7 @@
 package authservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -60,8 +61,8 @@ func (a authService) UpdateAccessToken(token string) (string, error) {
 	return token, nil
 }
 
-func (a authService) Login(username, password string) (model.Tokens, error) {
-	user, err := a.us.GetUser(username)
+func (a authService) Login(ctx context.Context, username, password string) (model.Tokens, error) {
+	user, err := a.us.GetUser(ctx, username)
 	if err != nil {
 		return model.Tokens{}, fmt.Errorf("cant login: %v", err)
 	}
@@ -88,16 +89,16 @@ func (a authService) Login(username, password string) (model.Tokens, error) {
 	}
 
 	return model.Tokens{
-		AccessToken: access,
+		AccessToken:  access,
 		RefreshToken: refresh,
 	}, nil
 }
 
-func (a authService) Register(name, password, role string) error {
+func (a authService) Register(ctx context.Context, name, password, role string) error {
 	var err error
 
 	if role == "customer" {
-		err = a.us.CheckForCustomerRole()
+		err = a.us.CheckForCustomerRole(ctx)
 		if err != nil {
 			return fmt.Errorf("cant create new customer: %v", err)
 		}
@@ -108,10 +109,10 @@ func (a authService) Register(name, password, role string) error {
 		return fmt.Errorf("cant register user: %v", err)
 	}
 
-	err = a.us.CreateUser(model.User{
-		Name: name,
+	err = a.us.CreateUser(ctx, model.User{
+		Name:     name,
 		Password: password,
-		Role: role,
+		Role:     role,
 	})
 	if err != nil {
 		return fmt.Errorf("cant register user %s: %v", name, err)
@@ -123,9 +124,9 @@ func (a authService) Register(name, password, role string) error {
 // <----------------INTERFACES---------------->
 
 type UserStore interface {
-	CreateUser(user model.User) error
-	GetUser(name string) (model.User, error)
-	CheckForCustomerRole() error
+	CreateUser(ctx context.Context, user model.User) error
+	GetUser(ctx context.Context, name string) (model.User, error)
+	CheckForCustomerRole(ctx context.Context) error
 }
 
 type PasswordManager interface {
