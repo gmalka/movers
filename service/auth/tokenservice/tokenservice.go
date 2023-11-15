@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	ACCESS_TOKEN_TTL  = 15
-	REFRESH_TOKEN_TTL = 60
-
 	AccessToken = iota
 	RefreshToken
+
+	ACCESS_TOKEN_TTL  = 15
+	REFRESH_TOKEN_TTL = 60
 )
 
 type UserClaims struct {
@@ -111,4 +111,12 @@ func (u *authService) CreateToken(userinfo model.UserInfo, kind int) (string, er
 	}
 
 	return token.SignedString(secret)
+}
+
+func (u *authService) GetAccessTTL() time.Duration {
+	return ACCESS_TOKEN_TTL
+}
+
+func (u *authService) GetRefreshTTL() time.Duration {
+	return REFRESH_TOKEN_TTL
 }

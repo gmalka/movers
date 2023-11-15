@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  noteservice:
+  moverservice:
     build: ./
-    container_name: noteservice_container
+    container_name: moverservice_container
     ports:
-      - 127.0.0.1:8081:8081
+      - 127.0.0.1:8080:8080
     depends_on:
       - migrate
     networks:

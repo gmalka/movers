@@ -6,9 +6,10 @@ type WorkerInfo struct {
 	Salary      int    `json:"salary"`
 	CarryWeight int    `json:"carryweight"`
 	Drunk       int    `json:"drunk"`
+	Choosen     bool   `json:"choosen"`
 }
 
 type WorkerUser struct {
 	Worker WorkerInfo
-	User User
+	User   User
 }

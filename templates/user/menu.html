@@ -1,0 +1,36 @@
+{{define "menu"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu</title>
+</head>
+<body>
+    <strong>Menu</strong>
+    <p><a id="aboutme" href="/">About Me</a></p>
+    <p><a id="tasks" href="/">Tasks</a></p>
+    {{if . }}
+        <p><a id="start" href="/">Start</a></p>
+        <p><a id="delete" href="/">Delete</a></p>
+    {{end}}
+
+    <p><a id="exit" href="/exit">Exit</a></p>
+
+    <script>
+        var currentUrl = window.location.href;
+    
+        var aboutme = document.getElementById("aboutme");
+        var tasks = document.getElementById("tasks");
+        var start = document.getElementById("startForm");
+        var del = document.getElementById("deleteForm");
+        var exit = document.getElementById("exit");
+    
+        aboutme.href = currentUrl + "/me"
+        tasks.href = currentUrl + "/tasks"
+        start.href = currentUrl + "/start"
+        del.href = currentUrl + "/delete"
+        exit.href = currentUrl + "/exit"
+     </script>    
+</body>
+</html>
+{{end}}

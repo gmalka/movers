@@ -8,17 +8,17 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type TaskRepository struct {
+type taskRepository struct {
 	db *sqlx.DB
 }
 
-func NewTaskRepository(db *sqlx.DB) *TaskRepository {
-	return &TaskRepository{
+func NewTaskRepository(db *sqlx.DB) *taskRepository {
+	return &taskRepository{
 		db: db,
 	}
 }
 
-func (t *TaskRepository) CreateTasks(ctx context.Context, tasks []model.Task) error {
+func (t *taskRepository) CreateTasks(ctx context.Context, tasks []model.Task) error {
 	tx, err := t.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("cant create tasks transaction: %v", err)
@@ -39,7 +39,7 @@ func (t *TaskRepository) CreateTasks(ctx context.Context, tasks []model.Task) er
 	return nil
 }
 
-func (t *TaskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
+func (t *taskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
 	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks LIMIT 1")
 	task := model.Task{}
 
@@ -63,7 +63,7 @@ func (t *TaskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
 // 	return task, nil
 // }
 
-func (t *TaskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
+func (t *taskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
 	tasks := make([]model.Task, 0, 10)
 	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks")
 	if err != nil {
@@ -84,7 +84,7 @@ func (t *TaskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
 	return tasks, nil
 }
 
-func (t *TaskRepository) DeleteTask(ctx context.Context, taskId int) error {
+func (t *taskRepository) DeleteTask(ctx context.Context, taskId int) error {
 	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks WHERE id=$1", taskId)
 	if err != nil {
 		return fmt.Errorf("cant delete task %d: %v", taskId, err)
@@ -93,7 +93,7 @@ func (t *TaskRepository) DeleteTask(ctx context.Context, taskId int) error {
 	return nil
 }
 
-func (t *TaskRepository) DeleteTasks(ctx context.Context, ) error {
+func (t *taskRepository) DeleteTasks(ctx context.Context, ) error {
 	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks")
 	if err != nil {
 		return fmt.Errorf("cant delete tasks: %v", err)

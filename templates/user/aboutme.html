@@ -1,0 +1,37 @@
+{{define "aboutme"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aboutme</title>
+</head>
+<body>
+    <strong>About Me</strong>
+    {{if .Customer }}
+        <p>Name: {{.Name}}</p>
+        <p>Money: {{.Money}}</p>
+        <hr>
+        {{range .Workers}}
+            <p>Name: {{.Name}} | Fatigue: {{.Fatigue}}% | Salary: {{.Salary}} | CarryWeight: {{.CarryWeight}} | Drunk: {{if eq .Drunk 1}}false{{else}}true{{end}}</p>
+        {{end}}
+    {{else}}
+        <p>Name: {{.Name}}</p>
+        <p>Fatigue: {{.Fatigue}}</p>
+        <p>Salary: {{.Salary}}</p>
+        <p>CarryWeight: {{.CarryWeight}}</p>
+        <p>Drunk: {{.Drunk}}</p>
+    {{end}}
+
+    <p><a id="back" href="">Back</a></p>
+
+    <script>
+        var currentUrl = window.location.href;
+    
+        var back = document.getElementById("back");
+    
+        var paths = currentUrl.split("/");
+        back.href = paths.slice(0, paths.length - 1).join("/");
+    </script>
+</body>
+</html>
+{{end}}

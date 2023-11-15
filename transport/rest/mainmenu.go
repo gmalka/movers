@@ -70,7 +70,7 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := CreateCookie(tokens.AccessToken, "access_token", "/"+u.Name, time.Now().Add(h.auth.GetAccessTTL()*time.Minute))
+	cookie := CreateBearerTokenCookie(tokens.AccessToken, "access_token", "/" + u.Name, time.Now().Add(h.auth.GetAccessTTL()*time.Minute))
 	http.SetCookie(w, cookie)
 
 	b, err := json.Marshal(tokens)
@@ -83,10 +83,10 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func CreateCookie(token, tokenname, path string, expiration time.Time) *http.Cookie {
+func CreateBearerTokenCookie(token, tokenname, path string, expiration time.Time) *http.Cookie {
 	cookie := new(http.Cookie)
 	cookie.Name = tokenname
-	cookie.Value = token
+	cookie.Value = "Bearer " + token
 	cookie.Expires = expiration
 	cookie.Path = path
 	cookie.HttpOnly = true

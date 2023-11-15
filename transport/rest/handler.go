@@ -28,7 +28,7 @@ func (l Log) Info(str string) {
 }
 
 type Handler struct {
-	game  GameIterator
+	game  WorkService
 	users UserService
 	tasks TaskService
 	auth  AuthService
@@ -36,7 +36,7 @@ type Handler struct {
 	log Log
 }
 
-func NewHandler(game GameIterator, users UserService, tasks TaskService, auth AuthService, log Log) Handler {
+func NewHandler(game WorkService, users UserService, tasks TaskService, auth AuthService, log Log) Handler {
 	return Handler{
 		game:  game,
 		users: users,
@@ -60,13 +60,19 @@ func (h Handler) Init() http.Handler {
 	r.Get("/tasks", h.CreateTasksTemplate)
 	r.Post("/tasks", h.CreateTasks)
 
+	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
+
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(h.checkAccess)
 
 		r.Get("/", h.UserMenu)
+		r.Get("/me", h.AboutMe)
 		r.Get("/tasks", h.GetCompletedTasks)
+		r.Get("/start", h.IterateGameGet)
 		r.Post("/start", h.IterateGame)
-		r.Post("/update", h.DeleteUser)
+		r.Get("/delete", h.DeleteUserGet)
+		r.Delete("/delete", h.DeleteUser)
+		r.Get("/exit", h.Exit)
 	})
 
 	return r
@@ -74,8 +80,8 @@ func (h Handler) Init() http.Handler {
 
 // <----------------INTERFACES---------------->
 
-type GameIterator interface {
-	IterateWork(ctx context.Context, customername string, workernames []string, task model.Task) error
+type WorkService interface {
+	CalculateWork(ctx context.Context, customername string, workers []model.WorkerInfo, task model.Task) error
 }
 
 type UserService interface {
@@ -86,6 +92,10 @@ type UserService interface {
 	GetWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
 	DeleteWorker(ctx context.Context, name string) error
+
+	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
+	ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
+	UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
 }
 
 type TaskService interface {

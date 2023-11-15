@@ -12,8 +12,8 @@ import (
 func (h Handler) checkAccess(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var tokenRaw string
-		cookie, err := r.Cookie("access-token")
-		if err != nil {
+		cookie, err := r.Cookie("access_token")
+		if err == nil {
 			tokenRaw = cookie.Value
 		} else {
 			tokenRaw = r.Header.Get("Authorization")

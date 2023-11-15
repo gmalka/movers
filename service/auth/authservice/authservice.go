@@ -123,11 +123,11 @@ func (a *authService) DeleteUser(ctx context.Context, name string) error {
 }
 
 func (a *authService) GetAccessTTL() time.Duration {
-	return AccessToken
+	return a.tm.GetAccessTTL()
 }
 
 func (a *authService) GetRefreshTTL() time.Duration {
-	return RefreshToken
+	return a.tm.GetRefreshTTL()
 }
 
 // <----------------INTERFACES---------------->
@@ -147,4 +147,7 @@ type PasswordManager interface {
 type TokenManager interface {
 	CreateToken(userinfo model.UserInfo, kind int) (string, error)
 	ParseToken(inputToken string, kind int) (model.UserInfo, error)
+
+	GetAccessTTL() time.Duration
+	GetRefreshTTL() time.Duration
 }

@@ -21,24 +21,17 @@ func NewWorkService(customers customerGetter, workers workerGetter, tasker taskF
 	}
 }
 
-func (w *workService) CalculateWork(ctx context.Context, customername string, workernames []string, task model.Task) error {
+func (w *workService) CalculateWork(ctx context.Context, customername string, workers []model.WorkerInfo, task model.Task) error {
 	customer, err := w.customers.GetCustomer(ctx, customername)
 	if err != nil {
 		return fmt.Errorf("cant calculate work: %v", err)
 	}
 
-	workers := make([]model.WorkerInfo, 0, 10)
 	salarySum := 0
 	liftingCapacity := 0
-	for _, v := range workernames {
-		worker, err := w.workers.GetWorker(ctx, v)
-		if err != nil {
-			return fmt.Errorf("cant calculate work: %v", err)
-		}
-
-		salarySum += worker.Salary
-		liftingCapacity += worker.CarryWeight * (100 - worker.Fatigue/100) * (worker.Drunk * 100)
-		workers = append(workers, worker)
+	for _, v := range workers {
+		salarySum += v.Salary
+		liftingCapacity += v.CarryWeight * (100 - v.Fatigue/100) * (v.Drunk * 100)
 	}
 
 	if customer.Money < salarySum {

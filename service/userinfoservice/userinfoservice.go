@@ -37,6 +37,10 @@ func (u *userInfoService) GetCustomer(ctx context.Context, name string) (model.C
 }
 
 func (u *userInfoService) DeleteCustomer(ctx context.Context, name string)  error {
+	err := u.workers.UnchooseAll(ctx)
+	if err != nil {
+		return fmt.Errorf("cant delete customer: %v", err)
+	}
 	return u.customers.DeleteCustomer(ctx, name)
 }
 
@@ -64,6 +68,18 @@ func (u *userInfoService) DeleteWorker(ctx context.Context, name string) error {
 	return u.workers.DeleteWorker(ctx, name)
 }
 
+func (u *userInfoService) GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
+	return u.workers.GetChoosenWorkers(ctx)
+}
+
+func (u *userInfoService) ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
+	return u.workers.ChooseWorkers(ctx, workers)
+}
+
+func (u *userInfoService) UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
+	return u.workers.UnchooseWorkers(ctx, workers)
+}
+
 // <----------------INTERFACES---------------->
 
 type customerStorage interface {
@@ -76,5 +92,9 @@ type workerStorage interface {
 	CreateWorker(ctx context.Context, worker model.WorkerInfo) error
 	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
 	GetWorkers(ctx context.Context) ([]model.WorkerInfo, error)
+	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
+	ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
+	UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
+	UnchooseAll(ctx context.Context) error
 	DeleteWorker(ctx context.Context, name string) error
 }
