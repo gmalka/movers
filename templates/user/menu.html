@@ -10,37 +10,39 @@
     <p><a id="aboutme" href="/">About Me</a></p>
     <p><a id="tasks" href="/">Tasks</a></p>
     {{if . }}
-        <p><a id="start" onclick="sendPostRequest()" href="/">Start</a></p>
-        <p><a id="delete" onclick="sendDeleteRequest()" href="/">Delete</a></p>
+        <p><a id="start" href="/" >Start</a></p>
+        <p><a id="delete" href="/" onclick="sendDeleteRequest()">Delete</a></p>
     {{end}}
 
-    <p><a id="exit" href="/exit">Exit</a></p>
+    <p><a id="exit" href="/">Exit</a></p>
 
     <script>
         var currentUrl = window.location.href;
 
-        function sendPostRequest() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", currentUrl + "/start", true);
-            xhr.send();
-        }
         function sendDeleteRequest() {
-            var xhr = new XMLHttpRequest();
-            xhr.open("DELETE", currentUrl + "/delete", true);
-            xhr.send();
-        }
+            event.preventDefault();
+
+            fetch(currentUrl + "/delete", {
+                method: "DELETE",
+            })
+            .then((data) => {
+               window.location.href = "/";
+            })
+        };
     
         var aboutme = document.getElementById("aboutme");
         var tasks = document.getElementById("tasks");
-        // var start = document.getElementById("start");
-        // var del = document.getElementById("delete");
         var exit = document.getElementById("exit");
+        var start = document.getElementById("start");
+        // var del = document.getElementById("delete");
     
         aboutme.href = currentUrl + "/me"
         tasks.href = currentUrl + "/tasks"
-        // start.href = currentUrl + "/start"
-        // del.href = currentUrl + "/delete"
         exit.href = currentUrl + "/exit"
+        if (start !== null) {
+            start.href = currentUrl + "/start"
+        }
+        // del.href = currentUrl + "/delete"
      </script>    
 </body>
 </html>

@@ -38,7 +38,7 @@ func (t *taskService) GenerateTasks(ctx context.Context, tocreate int) error {
 	tasks := make([]model.Task, tocreate)
 	for i := 0; i < tocreate; i++ {
 		task := model.Task{}
-		id := rand.Intn(count)
+		id := rand.Intn(count) + 1
 
 		var item model.Item
 		if val, ok := itemcash[id]; ok {
@@ -69,12 +69,12 @@ func (t *taskService) GetFirstTask(ctx context.Context) (model.Task, error) {
 	return t.ts.GetFirstTask(ctx)
 }
 
-func (t *taskService) GetTasks(ctx context.Context) ([]model.Task, error) {
-	return t.ts.GetTasks(ctx)
+func (t *taskService) GetTasks(ctx context.Context, page int) ([]model.Task, error) {
+	return t.ts.GetTasks(ctx, page)
 }
 
-func (t *taskService) GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error) {
-	return t.dt.GetWorkerTasks(ctx, name)
+func (t *taskService) GetWorkerTasks(ctx context.Context, name string, page int) ([]model.Task, error) {
+	return t.dt.GetWorkerTasks(ctx, name, page)
 }
 
 func (t *taskService) FinishTask(ctx context.Context, workers []string, task model.Task) error {
@@ -101,12 +101,12 @@ type itemStore interface {
 
 type doneTasksStore interface {
 	CompleteTask(ctx context.Context, workers []string, task model.Task) error
-	GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error)
+	GetWorkerTasks(ctx context.Context, name string, page int) ([]model.Task, error)
 }
 
 type taskStore interface {
 	CreateTasks(ctx context.Context, tasks []model.Task) error
 	GetFirstTask(ctx context.Context) (model.Task, error)
-	GetTasks(ctx context.Context) ([]model.Task, error)
+	GetTasks(ctx context.Context, page int) ([]model.Task, error)
 	DeleteTask(ctx context.Context, taskId int) error
 }

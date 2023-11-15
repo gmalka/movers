@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"context"
@@ -67,13 +68,28 @@ func (h Handler) Init() http.Handler {
 
 		r.Get("/", h.UserMenu)
 		r.Get("/me", h.AboutMe)
-		r.Get("/tasks", h.GetCompletedTasks)
-		r.Post("/start", h.IterateGame)
+		r.Get("/tasks", h.GetTasks)
+		r.Get("/start", h.StartGame)
+		r.Get("/iterate", h.ChoosewWorkers)
 		r.Delete("/delete", h.DeleteUser)
 		r.Get("/exit", h.Exit)
 	})
 
 	return r
+}
+
+func StepBack(url string) string {
+	str := strings.Split(url, "/")
+	l := len(str)
+
+	l -= 1
+	if l < 0 {
+		l = 0
+	}
+
+	url = strings.Join(str[:l], "/")
+
+	return url
 }
 
 // <----------------INTERFACES---------------->
@@ -92,15 +108,15 @@ type UserService interface {
 	DeleteWorker(ctx context.Context, name string) error
 
 	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
-	ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
-	UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
+	RechooseWorkers(ctx context.Context, workers []string) error
+	UnchooseWorkers(ctx context.Context, workers []string) error
 }
 
 type TaskService interface {
 	GenerateTasks(ctx context.Context, tocreate int) error
 	GetFirstTask(ctx context.Context) (model.Task, error)
-	GetTasks(ctx context.Context) ([]model.Task, error)
-	GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error)
+	GetTasks(ctx context.Context, page int) ([]model.Task, error)
+	GetWorkerTasks(ctx context.Context, name string, page int) ([]model.Task, error)
 	FinishTask(ctx context.Context, workers []string, task model.Task) error
 }
 

@@ -54,7 +54,7 @@ func (w *workService) CalculateWork(ctx context.Context, customername string, wo
 
 		err = w.workers.UpdateWorker(ctx, workers[i])
 		if err != nil {
-			return fmt.Errorf("cant calculate work: %v", err)
+			return fmt.Errorf("cant calculate work3: %v", err)
 		}
 
 		tasknames[i] = workers[i].Name
@@ -62,7 +62,7 @@ func (w *workService) CalculateWork(ctx context.Context, customername string, wo
 
 	err = w.tasker.FinishTask(ctx, tasknames, task)
 	if err != nil {
-		return fmt.Errorf("cant calculate work: %v", err)
+		return fmt.Errorf("cant calculate work4: %v", err)
 	}
 
 	return nil

@@ -28,7 +28,7 @@ func (c *customerRepository) CreateCustomer(ctx context.Context, customer model.
 }
 
 func (c *customerRepository) UpdateCustomer(ctx context.Context, customer model.CustomerInfo) error {
-	_, err := c.db.ExecContext(ctx, "UPDATE customers SET name = $1, money = $2", customer.Name, customer.Money)
+	_, err := c.db.ExecContext(ctx, "UPDATE customers SET money = $1 WHERE name = $2", customer.Money, customer.Name)
 	if err != nil {
 		return fmt.Errorf("cant update customer %s: %v", customer.Name, err)
 	}

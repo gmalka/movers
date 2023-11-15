@@ -72,12 +72,8 @@ func (u *userInfoService) GetChoosenWorkers(ctx context.Context) ([]model.Worker
 	return u.workers.GetChoosenWorkers(ctx)
 }
 
-func (u *userInfoService) ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
-	return u.workers.ChooseWorkers(ctx, workers)
-}
-
-func (u *userInfoService) UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
-	return u.workers.UnchooseWorkers(ctx, workers)
+func (u *userInfoService) RechooseWorkers(ctx context.Context, workers []string) error {
+	return u.workers.RechooseWorkers(ctx, workers)
 }
 
 // <----------------INTERFACES---------------->
@@ -93,8 +89,7 @@ type workerStorage interface {
 	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
 	GetWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
-	ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
-	UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error
+	RechooseWorkers(ctx context.Context, workers []string) error
 	UnchooseAll(ctx context.Context) error
 	DeleteWorker(ctx context.Context, name string) error
 }

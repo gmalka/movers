@@ -5,12 +5,12 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 
 CREATE TABLE IF NOT EXISTS "customers" (
-    "name" VARCHAR(100) PRIMARY KEY REFERENCES "users"("name"),
+    "name" VARCHAR(100) PRIMARY KEY REFERENCES "users"("name") ON DELETE CASCADE,
     "money" INTEGER NOT NULL CHECK (money BETWEEN 10000 AND 100000)
 );
 
 CREATE TABLE IF NOT EXISTS "workers" (
-    "name" VARCHAR(100) PRIMARY KEY REFERENCES "users"("name"),
+    "name" VARCHAR(100) PRIMARY KEY REFERENCES "users"("name") ON DELETE CASCADE,
     "fatigue" INTEGER NOT NULL CHECK (fatigue BETWEEN 0 AND 100),
     "salary" INTEGER NOT NULL CHECK (salary BETWEEN 10000 AND 30000),
     "carryweight" INTEGER NOT NULL CHECK (carryweight BETWEEN 5 AND 30),
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS "tasks" (
 
 CREATE TABLE IF NOT EXISTS "completetasks" (
     "id" SERIAL PRIMARY KEY,
-    "workername" VARCHAR(100) NOT NULL REFERENCES "users"("name"),
+    "workername" VARCHAR(100) NOT NULL REFERENCES "users"("name") ON DELETE CASCADE,
     "itemname" VARCHAR(100) NOT NULL,
     "weight" INTEGER NOT NULL CHECK (weight >= 0)
 );

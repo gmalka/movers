@@ -8,6 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const pageLimit = 20
+
 type doneTasksRepository struct {
 	db *sqlx.DB
 }
@@ -39,8 +41,13 @@ func (d *doneTasksRepository) CompleteTask(ctx context.Context, workers []string
 	return nil
 }
 
-func (d *doneTasksRepository) GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error) {
-	rows, err := d.db.QueryContext(ctx, "SELECT id,itemname,weight FROM completetasks WHERE workername=$1", name)
+func (d *doneTasksRepository) GetWorkerTasks(ctx context.Context, name string, page int) ([]model.Task, error) {
+	page -= 1
+	if page < 0 {
+		page = 0
+	}
+
+	rows, err := d.db.QueryContext(ctx, "SELECT id,itemname,weight FROM completetasks WHERE workername=$1 LIMIT $2 OFFSET $3", name, pageLimit, page * pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("cant get worker tasks: %v", err)
 	}

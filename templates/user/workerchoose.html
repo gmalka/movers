@@ -1,0 +1,45 @@
+{{define "workerchoose"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>workerchoose</title>
+</head>
+
+<body>
+    <p style="margin-left: 1em;" >My Money:{{ .Money}}</p>
+    <p style="margin-left: 1em;" ><a id="back" href="">Back</a></p>
+
+    {{if .Message}}
+        <p>Message: {{ .Message}}</p>
+    {{end}}
+
+    {{if .Workers}}
+        <form id="workerChooseForm" name="newLoginForm" action="/" method="get">
+            {{range .Workers}}
+                {{if .Choosen}}
+                    <label style="margin-left: 1.5em;"><input name="selectedWorkers" value="{{ .Name }}" type="checkbox" checked>Name: {{ .Name}}, Salary: {{ .Salary}}, Fatigue: {{ .Fatigue}}, Carry Weight: {{ .CarryWeight}}, Drunk: {{if eq .Drunk 1}}false{{else}}true{{end}}</label><br>
+                {{else}}
+                    <label style="margin-left: 1.5em;"><input name="selectedWorkers" value="{{ .Name }}" type="checkbox">Name: {{ .Name}}, Salary: {{ .Salary}}, Fatigue: {{ .Fatigue}}, Carry Weight: {{ .CarryWeight}}, Drunk: {{if eq .Drunk 1}}false{{else}}true{{end}}</label><br>
+                {{end}}
+            {{end}}
+            <button style="margin-left: 1em; margin-top: 1em;" type="submit">Play!</button>
+        </form>
+    {{else}}
+		<p>No workers left</p>
+    {{end}}
+
+    <script>
+        var currentUrl = window.location.href;
+    
+        var workerChooseForm = document.getElementById("workerChooseForm");
+        var back = document.getElementById("back");
+    
+        var paths = currentUrl.split("/");
+        
+        workerChooseForm.action = paths.slice(0, paths.length - 1).concat("iterate").join("/");;
+        back.href = paths.slice(0, paths.length - 1).join("/");
+    </script>
+</body>
+</html>
+{{end}}

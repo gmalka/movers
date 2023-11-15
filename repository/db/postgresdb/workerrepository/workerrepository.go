@@ -44,7 +44,7 @@ func (w *workerRepository) GetWorker(ctx context.Context, name string) (model.Wo
 
 func (w *workerRepository) GetWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
 	workers := make([]model.WorkerInfo, 0, 10)
-	rows, err := w.db.QueryContext(ctx, "SELECT * FROM workers")
+	rows, err := w.db.QueryContext(ctx, "SELECT * FROM workers ORDER BY name")
 	if err != nil {
 		return nil, fmt.Errorf("cant select workers: %v", err)
 	}
@@ -65,7 +65,7 @@ func (w *workerRepository) GetWorkers(ctx context.Context) ([]model.WorkerInfo, 
 
 func (w *workerRepository) GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
 	workers := make([]model.WorkerInfo, 0, 10)
-	rows, err := w.db.QueryContext(ctx, "SELECT * FROM workers WHERE choosen = true")
+	rows, err := w.db.QueryContext(ctx, "SELECT * FROM workers WHERE choosen = true ORDER BY name")
 	if err != nil {
 		return nil, fmt.Errorf("cant select workers: %v", err)
 	}
@@ -84,17 +84,22 @@ func (w *workerRepository) GetChoosenWorkers(ctx context.Context) ([]model.Worke
 	return workers, nil
 }
 
-func (w *workerRepository) ChooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
+func (w *workerRepository) RechooseWorkers(ctx context.Context, workers []string) error {
 	tx, err := w.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("cant start transaction: %v", err)
 	}
 	defer tx.Rollback()
 
+	_, err = tx.ExecContext(ctx, "UPDATE workers SET choosen = $1", false)
+	if err != nil {
+		return fmt.Errorf("cant unchoose workers: %v", err)
+	}
+
 	for _, v := range workers {
-		_, err := tx.ExecContext(ctx, "UPDATE workers SET choosen = $1 WHERE name = $2", true, v.Name)
+		_, err = tx.ExecContext(ctx, "UPDATE workers SET choosen = $1 WHERE name = $2", true, v)
 		if err != nil {
-			return fmt.Errorf("cant choose %s: %v", v.Name, err)
+			return fmt.Errorf("cant choose %s: %v", v, err)
 		}
 	}
 
@@ -105,26 +110,26 @@ func (w *workerRepository) ChooseWorkers(ctx context.Context, workers []model.Wo
 	return nil
 }
 
-func (w *workerRepository) UnchooseWorkers(ctx context.Context, workers []model.WorkerInfo) error {
-	tx, err := w.db.BeginTx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("cant start transaction: %v", err)
-	}
-	defer tx.Rollback()
+// func (w *workerRepository) UnchooseWorkers(ctx context.Context, workers []string) error {
+// 	tx, err := w.db.BeginTx(ctx, nil)
+// 	if err != nil {
+// 		return fmt.Errorf("cant start transaction: %v", err)
+// 	}
+// 	defer tx.Rollback()
 
-	for _, v := range workers {
-		_, err := tx.ExecContext(ctx, "UPDATE workers SET choosen = $1 WHERE name = $2", false, v.Name)
-		if err != nil {
-			return fmt.Errorf("cant choose %s: %v", v.Name, err)
-		}
-	}
+// 	for _, v := range workers {
+// 		_, err := tx.ExecContext(ctx, "UPDATE workers SET choosen = $1 WHERE name = $2", false, v)
+// 		if err != nil {
+// 			return fmt.Errorf("cant choose %s: %v", v, err)
+// 		}
+// 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return fmt.Errorf("cant commit tasks transaction: %v", err)
-	}
-	return nil
-}
+// 	err = tx.Commit()
+// 	if err != nil {
+// 		return fmt.Errorf("cant commit tasks transaction: %v", err)
+// 	}
+// 	return nil
+// }
 
 func (w *workerRepository) UnchooseAll(ctx context.Context) error {
 	_, err := w.db.ExecContext(ctx, "UPDATE workers SET choosen = $1", false)
@@ -136,7 +141,7 @@ func (w *workerRepository) UnchooseAll(ctx context.Context) error {
 }
 
 func (w *workerRepository) UpdateWorker(ctx context.Context, worker model.WorkerInfo) error {
-	_, err := w.db.ExecContext(ctx, "UPDATE workers SET name = $1, fatigue = $2, salary = $3, carryweight = $4, drunk = $5", worker.Name, worker.Fatigue, worker.Salary, worker.CarryWeight, worker.Drunk)
+	_, err := w.db.ExecContext(ctx, "UPDATE workers SET fatigue = $1, salary = $2, carryweight = $3, drunk = $4 WHERE name = $5", worker.Fatigue, worker.Salary, worker.CarryWeight, worker.Drunk, worker.Name)
 	if err != nil {
 		return fmt.Errorf("cant update worker %s: %v", worker.Name, err)
 	}

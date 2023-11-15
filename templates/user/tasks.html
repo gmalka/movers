@@ -1,0 +1,39 @@
+{{define "tasks"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>tasks</title>
+</head>
+
+<body>
+     <form id="transactionForm" method="GET">
+        <label for="page">Page</label>
+        <input type="number" name="page" id="page" class="form-control">
+        <button type="submit">Watch</button>
+    </form>
+    <br>
+    <p style="margin-left: 1.5em;"><a id="back" href="">Return</a></p>
+    <p style="margin-left: 1.5em;">Page №{{ .Page}}</p>
+    <hr/>
+    <ol>
+    <strong>Tasks</strong>
+    {{if .Tasks}}
+        {{range .Tasks}}
+            <p>Name: {{ .ItemName}} | Weight: {{ .Weight}}</p>
+        {{end}}
+    {{else}}
+		<p>No tasks left</p>
+    {{end}}
+
+    <script>
+        var currentUrl = window.location.href;
+    
+        var back = document.getElementById("back");
+    
+        var paths = currentUrl.split("/");
+        back.href = paths.slice(0, paths.length - 1).join("/");
+    </script>
+</body>
+</html>
+{{end}}

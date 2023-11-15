@@ -8,6 +8,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const pageLimit = 20
+
 type taskRepository struct {
 	db *sqlx.DB
 }
@@ -63,9 +65,14 @@ func (t *taskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
 // 	return task, nil
 // }
 
-func (t *taskRepository) GetTasks(ctx context.Context) ([]model.Task, error) {
+func (t *taskRepository) GetTasks(ctx context.Context, page int) ([]model.Task, error) {
+	page -= 1
+	if page < 0 {
+		page = 0
+	}
+
 	tasks := make([]model.Task, 0, 10)
-	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks")
+	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks LIMIT $1 OFFSET $2", pageLimit, page * pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("cant select tasks: %v", err)
 	}
