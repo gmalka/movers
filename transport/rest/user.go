@@ -135,20 +135,7 @@ func (h Handler) GetCompletedTasks(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h Handler) IterateGameGet(w http.ResponseWriter, r *http.Request) {
-	r.Method = http.MethodPost
-	http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
-}
-
 func (h Handler) IterateGame(w http.ResponseWriter, r *http.Request) {
-}
-
-func (h Handler) DeleteUserGet(w http.ResponseWriter, r *http.Request) {
-	r.Method = http.MethodDelete
-	http.Redirect(w, r, r.URL.Path, http.StatusSeeOther)
-}
-
-func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "username")
 
 	workers, err := h.users.GetChoosenWorkers(r.Context())
@@ -165,7 +152,32 @@ func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.game.CalculateWork(r.Context(), name, workers, task)
+	err = h.game.CalculateWork(r.Context(), name, workers, task)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "username")
+
+	err := h.auth.DeleteUser(r.Context(), name)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	err = h.users.DeleteCustomer(r.Context(), name)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h Handler) Exit(w http.ResponseWriter, r *http.Request) {
