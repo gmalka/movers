@@ -1,0 +1,27 @@
+{{define "tasks"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>New User page</title>
+</head>
+<body>
+<form id="newTaskForm" name="newTaskForm" action="/tasks" method="post" class="mt-4">
+    <label for="tasks">Number of tasks to create</label> </br></br>
+    <input type="tasks" id="tasks" name="tasks">
+    <button type="submit" name="submitBtn">Create</button>
+</form>
+
+<p><a id="back" href="">Back</a></p>
+
+<script>
+    var currentUrl = window.location.href;
+
+    var back = document.getElementById("back");
+
+    var paths = currentUrl.split("/");
+    back.href = paths.slice(0, paths.length - 1).join("/");
+</script>
+</body>
+</html>
+{{end}}

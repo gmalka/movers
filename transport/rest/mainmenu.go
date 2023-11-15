@@ -1,11 +1,15 @@
 package rest
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
+
+	"github.com/gmalka/movers/model"
 )
 
 var pathToTemplates string
@@ -25,8 +29,6 @@ func (h Handler) MainMenu(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h Handler) LoginTemplate(w http.ResponseWriter, r *http.Request) {
@@ -44,8 +46,22 @@ func (h Handler) LoginTemplate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+}
 
-	w.WriteHeader(http.StatusOK)
+func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
+	u := model.User{}
+
+	err := r.ParseForm()
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	u.Name = r.Form.Get("login")
+	u.Password = r.Form.Get("password")
+
+	fmt.Println(u)
 }
 
 func (h Handler) RegisterTemplate(w http.ResponseWriter, r *http.Request) {
@@ -58,13 +74,94 @@ func (h Handler) RegisterTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "index", nil); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "register", nil); err != nil {
 		h.log.Error(err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+}
 
-	w.WriteHeader(http.StatusOK)
+func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	user := model.User{}
+	user.Name = r.Form.Get("login")
+	user.Password = r.Form.Get("password")
+	user.Role = r.Form.Get("options")
+	// err = h.auth.Register(r.Context(), user)
+	// if err != nil {
+	// 	h.log.Error(err.Error())
+	// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	// 	return
+	// }
+
+	switch user.Role {
+	case "Customer":
+		customer := model.CustomerInfo{}
+		money, err := strconv.Atoi(r.Form.Get("money"))
+		if err != nil {
+			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		customer.Money = money
+		customer.Name = user.Name
+
+		// err = h.users.NewCustomer(r.Context(), customer)
+		// if err != nil {
+		// 	h.auth.DeleteUser(r.Context(), user.Name)
+		// 	h.log.Error(err.Error())
+		// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		// 	return
+		// }
+		fmt.Println(customer)
+	case "Worker":
+		worker := model.WorkerInfo{}
+		fatigue, err := strconv.Atoi(r.Form.Get("fatigue"))
+		if err != nil {
+			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		worker.Fatigue = fatigue
+
+		salary, err := strconv.Atoi(r.Form.Get("price"))
+		if err != nil {
+			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		worker.Salary = salary
+
+		weight, err := strconv.Atoi(r.Form.Get("weight"))
+		if err != nil {
+			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		worker.CarryWeight = weight
+
+		drunk := r.Form.Get("drunk")
+		if drunk == "" {
+			worker.Drunk = 1
+		} else {
+			worker.Drunk = 2
+		}
+	default:
+		//h.auth.DeleteUser(r.Context(), user.Name)
+		h.log.Error(fmt.Sprintf("Incorrect role: %s", user.Role))
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 }
 
 func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
@@ -77,13 +174,11 @@ func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := tmpl.ExecuteTemplate(w, "index", nil); err != nil {
+	if err := tmpl.ExecuteTemplate(w, "tasks", nil); err != nil {
 		h.log.Error(err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h Handler) PathToTemplates() string {

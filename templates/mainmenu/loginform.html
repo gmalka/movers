@@ -3,63 +3,27 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login page</title>
-    <style>
-        #newUserForm{
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 300px;
-        }
-        input{
-            height: 1.5rem;
-        }
-        .radios{
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-    </style>
+    <title>New User page</title>
 </head>
 <body>
-    <form id="newUserForm" name="newUserForm" action="" method="post" class="mt-4">
-        <label for="login">Login</label>
-        <input placeholder="Login" type="login" id="login" name="login">
-        
-        <label for="password">Password</label>
-        <input type="password" placeholder="password" id="password" name="password">
-        
-        <label id="customermoney" for="password" style="display: block;">Money</label>
-        <input id="customermoneyinput" type="password" name="password" style="display: block;">
-    
-        <label class="radios"> 
-          <input id="customer" type="radio" name="options"  value="Customer" checked> Customer
-          <input id="worker" type="radio" name="options" value="Worker"> Worker
-        </label> 
-        
-        <button type="submit" name="submitBtn">Создать</button>
-    </form>
+<form id="newLoginForm" name="newLoginForm" action="/login" method="post" class="mt-4">
+    <label for="login">Login</label>
+    <input type="login" id="login" name="login">
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password">
+    <button type="submit" name="submitBtn">Create</button>
+</form>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var radios = document.getElementsByName('options');
-            
-            var hiddenLabel = document.getElementById('customermoney');
-            var hiddenPassword = document.getElementById('customermoneyinput');
+<p><a id="back" href="">Back</a></p>
 
-            radios.forEach(function(radio) {
-                radio.addEventListener('change', function() {
-                    if (radio.value === 'Worker') {
-                        hiddenLabel.style.display = 'block';
-                        hiddenPassword.style.display = 'block';
-                    } else {
-                        hiddenLabel.style.display = 'none';
-                        hiddenPassword.style.display = 'none';
-                    }
-                });
-            });
-        });
-    </script>
+<script>
+    var currentUrl = window.location.href;
+
+    var back = document.getElementById("back");
+
+    var paths = currentUrl.split("/");
+    back.href = paths.slice(0, paths.length - 1).join("/");
+</script>
 </body>
-    
+</html>
 {{end}}

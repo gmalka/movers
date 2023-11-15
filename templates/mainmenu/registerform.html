@@ -1,0 +1,115 @@
+{{define "register"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register page</title>
+    <style>
+        #newRegisterForm{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 300px;
+        }
+        input{
+            height: 1.5rem;
+        }
+        .radios{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .drunk{
+            align-items: center;
+            gap: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <form id="newRegisterForm" name="newRegisterForm" action="/register" method="post" class="mt-4">
+        <label for="login">Login</label>
+        <input placeholder="Login" type="login" id="login" name="login">
+        
+        <label for="password">Password</label>
+        <input type="password" placeholder="password" id="password" name="password">
+        
+        <label id="customermoney" for="customermoneyinput" style="display: block;">Money</label>
+        <input id="customermoneyinput" type="number" name="money" style="display: block;">
+
+        <label id="workercarryweight" for="workercarryweightinput" style="display: none;">Carry Weight</label>
+        <input id="workercarryweightinput" type="number" name="weight" style="display: none;">
+
+        <label id="workerprice" for="workerpriceinput" style="display: none;">Price</label>
+        <input id="workerpriceinput" type="number" name="price" style="display: none;">
+
+        <label id="workerfatigue" for="workerfatigueinput" style="display: none;">Fatigue(%)</label>
+        <input id="workerfatigueinput" type="number" name="fatigue" style="display: none;">
+
+        <label class="drunk" id="workerdrunkinput">
+            <input type="checkbox" id="workerdrunk" name="drunk" value="drunk"> Drunk
+        </label>          
+    
+        <label class="radios"> 
+          <input id="customer" type="radio" name="options"  value="Customer" checked> Customer
+          <input id="worker" type="radio" name="options" value="Worker"> Worker
+        </label> 
+        
+        <button type="submit" name="submitBtn">Creat</button>
+    </form>
+
+    <p><a id="back" href="">Back</a></p>
+
+    <script>
+        var currentUrl = window.location.href;
+
+        var back = document.getElementById("back");
+
+        var paths = currentUrl.split("/");
+        back.href = paths.slice(0, paths.length - 1).join("/");
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var radios = document.getElementsByName('options');
+            
+            var customermoney = document.getElementById('customermoney');
+            var customermoneyinput = document.getElementById('customermoneyinput');
+
+            var workercarryweight = document.getElementById('workercarryweight');
+            var workercarryweightinput = document.getElementById('workercarryweightinput');
+            var workerprice = document.getElementById('workerprice');
+            var workerpriceinput = document.getElementById('workerpriceinput');
+            var workerfatigue = document.getElementById('workerfatigue');
+            var workerfatigueinput = document.getElementById('workerfatigueinput');
+            var workerdrunk = document.getElementById('workerdrunkinput');
+
+            radios.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    if (radio.value === 'Customer') {
+                        customermoney.style.display = 'block';
+                        customermoneyinput.style.display = 'block';
+
+                        workercarryweight.style.display = 'none';
+                        workercarryweightinput.style.display = 'none';
+                        workerprice.style.display = 'none';
+                        workerpriceinput.style.display = 'none';
+                        workerfatigue.style.display = 'none';
+                        workerfatigueinput.style.display = 'none';
+                        workerdrunk.style.display = 'none';
+                    } else {
+                        customermoney.style.display = 'none';
+                        customermoneyinput.style.display = 'none';
+
+                        workercarryweight.style.display = 'block';
+                        workercarryweightinput.style.display = 'block';
+                        workerprice.style.display = 'block';
+                        workerpriceinput.style.display = 'block';
+                        workerfatigue.style.display = 'block';
+                        workerfatigueinput.style.display = 'block';
+                        workerdrunk.style.display = 'flex';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+{{end}}

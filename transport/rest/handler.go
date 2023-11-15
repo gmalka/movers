@@ -8,6 +8,7 @@ import (
 
 	"github.com/gmalka/movers/model"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 type UserRequest struct{}
@@ -46,14 +47,14 @@ func NewHandler(game GameIterator, users UserService, tasks TaskService, auth Au
 
 func (h Handler) Init() http.Handler {
 	r := chi.NewRouter()
-	//r.Use(middleware.Logger)
+	r.Use(middleware.Logger)
 
 	r.Get("/", h.MainMenu)
 	r.Get("/login", h.LoginTemplate)
-	//r.Post("/login", h.Login)
+	r.Post("/login", h.Login)
 
 	r.Get("/register", h.RegisterTemplate)
-	//r.Post("/register", h.Regiter)
+	r.Post("/register", h.Regsiter)
 
 	r.Get("/tasks", h.CreateTasksTemplate)
 	//r.Post("/tasks", h.CreateTasks)
@@ -96,7 +97,7 @@ type TaskService interface {
 
 type AuthService interface {
 	Login(ctx context.Context, username, password string) (model.Tokens, error)
-	Register(ctx context.Context, name, password, role string) error
+	Register(ctx context.Context, user model.User) error
 	CheckAccessToken(token string) (model.UserInfo, error)
 	DeleteUser(ctx context.Context, name string) error
 	UpdateRefreshToken(token string) (string, error)

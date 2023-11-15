@@ -94,34 +94,30 @@ func (a *authService) Login(ctx context.Context, username, password string) (mod
 	}, nil
 }
 
-func (a *authService) Register(ctx context.Context, name, password, role string) error {
+func (a *authService) Register(ctx context.Context, user model.User) error {
 	var err error
 
-	if role == "customer" {
+	if user.Role == "Customer" {
 		err = a.us.CheckForCustomerRole(ctx)
 		if err != nil {
 			return fmt.Errorf("cant create new customer: %v", err)
 		}
 	}
 
-	password, err = a.pm.HashPassword(password)
+	user.Password, err = a.pm.HashPassword(user.Password)
 	if err != nil {
 		return fmt.Errorf("cant register user: %v", err)
 	}
 
-	err = a.us.CreateUser(ctx, model.User{
-		Name:     name,
-		Password: password,
-		Role:     role,
-	})
+	err = a.us.CreateUser(ctx, user)
 	if err != nil {
-		return fmt.Errorf("cant register user %s: %v", name, err)
+		return fmt.Errorf("cant register user %s: %v", user.Name, err)
 	}
 
 	return nil
 }
 
-func (a *authService) DeleteUser(ctx context.Context, name string)  error {
+func (a *authService) DeleteUser(ctx context.Context, name string) error {
 	return a.us.DeleteUser(ctx, name)
 }
 
@@ -129,7 +125,7 @@ func (a *authService) DeleteUser(ctx context.Context, name string)  error {
 
 type UserStore interface {
 	CreateUser(ctx context.Context, user model.User) error
-	DeleteUser(ctx context.Context, name string)  error
+	DeleteUser(ctx context.Context, name string) error
 	GetUser(ctx context.Context, name string) (model.User, error)
 	CheckForCustomerRole(ctx context.Context) error
 }
