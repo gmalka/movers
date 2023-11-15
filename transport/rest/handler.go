@@ -60,14 +60,14 @@ func (h Handler) Init() http.Handler {
 	r.Get("/tasks", h.CreateTasksTemplate)
 	r.Post("/tasks", h.CreateTasks)
 
-	// r.Route("/{username}", func(r chi.Router) {
-	// 	r.Use(h.checkAccess)
+	r.Route("/{username}", func(r chi.Router) {
+		r.Use(h.checkAccess)
 
-	// 	r.Get("/", h.UserMenu)
-	// 	r.Get("/tasks", h.GetCompletedTasks)
-	// 	r.Post("/start", h.IterateGame)
-	// 	r.Post("/update", h.DeleteUser)
-	// })
+		r.Get("/", h.UserMenu)
+		r.Get("/tasks", h.GetCompletedTasks)
+		r.Post("/start", h.IterateGame)
+		r.Post("/update", h.DeleteUser)
+	})
 
 	return r
 }
