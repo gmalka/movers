@@ -26,7 +26,7 @@ func (d *doneTasksRepository) CompleteTask(ctx context.Context, workers []string
 	defer tx.Rollback()
 
 	for _, v := range workers {
-		_, err := tx.ExecContext(ctx, "INSERT INTO completetasks VALUES($1,$2,$3,$4)", v, task.TaskId, task.ItemName, task.Weight)
+		_, err := tx.ExecContext(ctx, "INSERT INTO completetasks VALUES($1,$2,$3,$4)", task.TaskId, v, task.ItemName, task.Weight)
 		if err != nil {
 			return fmt.Errorf("cant add task %s to completetask task: %v", v, err)
 		}
@@ -40,7 +40,7 @@ func (d *doneTasksRepository) CompleteTask(ctx context.Context, workers []string
 }
 
 func (d *doneTasksRepository) GetWorkerTasks(ctx context.Context, name string) ([]model.Task, error) {
-	rows, err := d.db.QueryContext(ctx, "SELECT taskid,itemname,weight FROM completetasks WHERE workername=$1", name)
+	rows, err := d.db.QueryContext(ctx, "SELECT id,itemname,weight FROM completetasks WHERE workername=$1", name)
 	if err != nil {
 		return nil, fmt.Errorf("cant get worker tasks: %v", err)
 	}

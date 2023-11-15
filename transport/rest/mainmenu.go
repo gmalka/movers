@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gmalka/movers/model"
 )
@@ -61,7 +63,35 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 	u.Name = r.Form.Get("login")
 	u.Password = r.Form.Get("password")
 
-	fmt.Println(u)
+	tokens, err := h.auth.Login(r.Context(), u.Name, u.Password)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	cookie := CreateCookie(tokens.AccessToken, "access_token", "/"+u.Name, time.Now().Add(h.auth.GetAccessTTL()*time.Minute))
+	http.SetCookie(w, cookie)
+
+	b, err := json.Marshal(tokens)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	w.Write(b)
+}
+
+func CreateCookie(token, tokenname, path string, expiration time.Time) *http.Cookie {
+	cookie := new(http.Cookie)
+	cookie.Name = tokenname
+	cookie.Value = token
+	cookie.Expires = expiration
+	cookie.Path = path
+	cookie.HttpOnly = true
+
+	return cookie
 }
 
 func (h Handler) RegisterTemplate(w http.ResponseWriter, r *http.Request) {
@@ -93,19 +123,20 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 	user.Name = r.Form.Get("login")
 	user.Password = r.Form.Get("password")
 	user.Role = r.Form.Get("options")
-	// err = h.auth.Register(r.Context(), user)
-	// if err != nil {
-	// 	h.log.Error(err.Error())
-	// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-	// 	return
-	// }
+	h.log.Info(fmt.Sprintf("Createing user %s", user.Name))
+	err = h.auth.Register(r.Context(), user)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	switch user.Role {
 	case "Customer":
 		customer := model.CustomerInfo{}
 		money, err := strconv.Atoi(r.Form.Get("money"))
 		if err != nil {
-			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.auth.DeleteUser(r.Context(), user.Name)
 			h.log.Error(err.Error())
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
@@ -113,19 +144,19 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		customer.Money = money
 		customer.Name = user.Name
 
-		// err = h.users.NewCustomer(r.Context(), customer)
-		// if err != nil {
-		// 	h.auth.DeleteUser(r.Context(), user.Name)
-		// 	h.log.Error(err.Error())
-		// 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		// 	return
-		// }
-		fmt.Println(customer)
+		h.log.Info(fmt.Sprintf("Createing Customer %#v", customer))
+		err = h.users.NewCustomer(r.Context(), customer)
+		if err != nil {
+			h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	case "Worker":
-		worker := model.WorkerInfo{}
+		worker := model.WorkerInfo{Name: user.Name}
 		fatigue, err := strconv.Atoi(r.Form.Get("fatigue"))
 		if err != nil {
-			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.auth.DeleteUser(r.Context(), user.Name)
 			h.log.Error(err.Error())
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
@@ -134,7 +165,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 
 		salary, err := strconv.Atoi(r.Form.Get("price"))
 		if err != nil {
-			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.auth.DeleteUser(r.Context(), user.Name)
 			h.log.Error(err.Error())
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
@@ -143,7 +174,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 
 		weight, err := strconv.Atoi(r.Form.Get("weight"))
 		if err != nil {
-			//h.auth.DeleteUser(r.Context(), user.Name)
+			h.auth.DeleteUser(r.Context(), user.Name)
 			h.log.Error(err.Error())
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
@@ -156,12 +187,23 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		} else {
 			worker.Drunk = 2
 		}
+
+		h.log.Info(fmt.Sprintf("Createing Worker %#v", worker))
+		err = h.users.NewWorker(r.Context(), worker)
+		if err != nil {
+			h.auth.DeleteUser(r.Context(), user.Name)
+			h.log.Error(err.Error())
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
 	default:
-		//h.auth.DeleteUser(r.Context(), user.Name)
+		h.auth.DeleteUser(r.Context(), user.Name)
 		h.log.Error(fmt.Sprintf("Incorrect role: %s", user.Role))
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
@@ -179,6 +221,31 @@ func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h Handler) CreateTasks(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	count, err := strconv.Atoi(r.Form.Get("tasks"))
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	err = h.tasks.GenerateTasks(r.Context(), count)
+	if err != nil {
+		h.log.Error(err.Error())
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (h Handler) PathToTemplates() string {

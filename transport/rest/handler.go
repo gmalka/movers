@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"time"
 
 	"context"
 	"log"
@@ -57,7 +58,7 @@ func (h Handler) Init() http.Handler {
 	r.Post("/register", h.Regsiter)
 
 	r.Get("/tasks", h.CreateTasksTemplate)
-	//r.Post("/tasks", h.CreateTasks)
+	r.Post("/tasks", h.CreateTasks)
 
 	// r.Route("/{username}", func(r chi.Router) {
 	// 	r.Use(h.checkAccess)
@@ -102,4 +103,7 @@ type AuthService interface {
 	DeleteUser(ctx context.Context, name string) error
 	UpdateRefreshToken(token string) (string, error)
 	UpdateAccessToken(token string) (string, error)
+
+	GetAccessTTL() time.Duration
+	GetRefreshTTL() time.Duration
 }

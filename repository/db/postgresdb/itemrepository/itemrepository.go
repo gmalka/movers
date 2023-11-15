@@ -19,7 +19,7 @@ func NewItemService(db *sqlx.DB) *itemService {
 }
 
 func (i *itemService) CreateItem(ctx context.Context, item model.Item) error {
-	_, err := i.db.ExecContext(ctx, "INSERT INTO items(name,maxweight,minweight,maxprice,minprice) VALUES($1,$2,$3)", item.Name, item.MaxWeight, item.MinWeight)
+	_, err := i.db.ExecContext(ctx, "INSERT INTO items(name,maxweight,minweight) VALUES($1,$2,$3)", item.Name, item.MaxWeight, item.MinWeight)
 	if err != nil {
 		return fmt.Errorf("cant create item %s: %v", item.Name, err)
 	}

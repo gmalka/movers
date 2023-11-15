@@ -27,7 +27,7 @@
     </style>
 </head>
 <body>
-    <form id="newRegisterForm" name="newRegisterForm" action="/register" method="post" class="mt-4">
+    <form id="newRegisterForm" name="newRegisterForm" action="/register" method="post">
         <label for="login">Login</label>
         <input placeholder="Login" type="login" id="login" name="login">
         
@@ -35,16 +35,16 @@
         <input type="password" placeholder="password" id="password" name="password">
         
         <label id="customermoney" for="customermoneyinput" style="display: block;">Money</label>
-        <input id="customermoneyinput" type="number" name="money" style="display: block;">
+        <input id="customermoneyinput" type="number" name="money" placeholder="10000" min="10000" max="100000"  style="display: block;">
 
         <label id="workercarryweight" for="workercarryweightinput" style="display: none;">Carry Weight</label>
-        <input id="workercarryweightinput" type="number" name="weight" style="display: none;">
+        <input id="workercarryweightinput" type="number" name="weight" placeholder="5" min="5" max="30" style="display: none;">
 
         <label id="workerprice" for="workerpriceinput" style="display: none;">Price</label>
-        <input id="workerpriceinput" type="number" name="price" style="display: none;">
+        <input id="workerpriceinput" type="number" name="price" placeholder="10000" min="10000" max="30000" style="display: none;">
 
         <label id="workerfatigue" for="workerfatigueinput" style="display: none;">Fatigue(%)</label>
-        <input id="workerfatigueinput" type="number" name="fatigue" style="display: none;">
+        <input id="workerfatigueinput" type="number" name="fatigue" placeholder="0" min="0" max="100" style="display: none;">
 
         <label class="drunk" id="workerdrunkinput">
             <input type="checkbox" id="workerdrunk" name="drunk" value="drunk"> Drunk

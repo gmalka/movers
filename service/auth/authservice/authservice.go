@@ -3,6 +3,7 @@ package authservice
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/gmalka/movers/model"
 )
@@ -119,6 +120,14 @@ func (a *authService) Register(ctx context.Context, user model.User) error {
 
 func (a *authService) DeleteUser(ctx context.Context, name string) error {
 	return a.us.DeleteUser(ctx, name)
+}
+
+func (a *authService) GetAccessTTL() time.Duration {
+	return AccessToken
+}
+
+func (a *authService) GetRefreshTTL() time.Duration {
+	return RefreshToken
 }
 
 // <----------------INTERFACES---------------->

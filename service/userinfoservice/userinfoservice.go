@@ -2,6 +2,7 @@ package userinfoservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -20,6 +21,9 @@ func NewuserInfoService(customers customerStorage, workers workerStorage) *userI
 }
 
 func (u *userInfoService) NewCustomer(ctx context.Context, customer model.CustomerInfo) error {
+	if customer.Money < 10000 || customer.Money > 100000 {
+		return errors.New("incorrect input data")
+	}
 	err := u.customers.CreateCustomer(ctx, customer)
 	if err != nil {
 		return fmt.Errorf("cant create new customer: %v", err)
@@ -37,6 +41,9 @@ func (u *userInfoService) DeleteCustomer(ctx context.Context, name string)  erro
 }
 
 func (u *userInfoService) NewWorker(ctx context.Context, worker model.WorkerInfo) error {
+	if worker.Salary < 10000 || worker.Salary > 30000 || worker.CarryWeight < 5 || worker.CarryWeight > 30 || worker.Fatigue < 0 || worker.Fatigue > 100 {
+		return errors.New("incorrect input data")
+	}
 	err := u.workers.CreateWorker(ctx, worker)
 	if err != nil {
 		return fmt.Errorf("cant create new worker: %v", err)
