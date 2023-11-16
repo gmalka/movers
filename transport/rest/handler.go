@@ -52,7 +52,7 @@ func (h Handler) Init() http.Handler {
 	r.Use(middleware.Logger)
 
 	r.Get("/", h.MainMenu)
-	
+
 	r.Get("/login", h.LoginTemplate)
 	r.Post("/login", h.Login)
 
@@ -71,7 +71,7 @@ func (h Handler) Init() http.Handler {
 		r.Get("/me", h.AboutMe)
 		r.Get("/tasks", h.GetTasks)
 		r.Get("/start", h.StartGame)
-		r.Post("/iterate", h.ChoosewWorkers)
+		r.Post("/start", h.ChoosewWorkers)
 		r.Delete("/delete", h.DeleteUser)
 		r.Get("/exit", h.Exit)
 	})

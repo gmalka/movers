@@ -30,6 +30,7 @@ func (t *taskRepository) CreateTasks(ctx context.Context, tasks []model.Task) er
 	for _, v := range tasks {
 		_, err = tx.ExecContext(ctx, "INSERT INTO tasks(itemname,weight) VALUES($1,$2)", v.ItemName, v.Weight)
 		if err != nil {
+			fmt.Println(v.Weight)
 			return fmt.Errorf("cant insert task: %v", err)
 		}
 	}

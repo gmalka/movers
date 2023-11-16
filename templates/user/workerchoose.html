@@ -42,7 +42,7 @@
     
         var paths = currentUrl.split("/");
         
-        workerChooseForm.action = paths.slice(0, paths.length - 1).concat("iterate").join("/");;
+        workerChooseForm.action = currentUrl;
         back.href = paths.slice(0, paths.length - 1).join("/");
     </script>
 </body>

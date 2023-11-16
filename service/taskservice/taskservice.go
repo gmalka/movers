@@ -56,7 +56,11 @@ func (t *taskService) GenerateTasks(ctx context.Context, tocreate int) error {
 		}
 
 		task.ItemName = item.Name
-		task.Weight = rand.Intn(item.MaxWeight) + item.MinWeight
+		m := item.MaxWeight-item.MinWeight+1
+		if m <= 0 {
+			return fmt.Errorf("incorrect diaposon: %d", m)
+		}
+		task.Weight = rand.Intn(item.MaxWeight-item.MinWeight+1) + item.MinWeight
 
 		tasks[i] = task
 	}
