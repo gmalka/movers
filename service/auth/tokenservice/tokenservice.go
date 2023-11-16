@@ -1,4 +1,4 @@
-package tokenmanager
+package tokenservice
 
 import (
 	"errors"

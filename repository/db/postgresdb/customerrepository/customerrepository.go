@@ -28,7 +28,7 @@ func (c *customerRepository) CreateCustomer(ctx context.Context, customer model.
 }
 
 func (c *customerRepository) UpdateCustomer(ctx context.Context, customer model.CustomerInfo) error {
-	_, err := c.db.ExecContext(ctx, "UPDATE customers SET money = $1 WHERE name = $2", customer.Money, customer.Name)
+	_, err := c.db.ExecContext(ctx, "UPDATE customers SET money = $1, lost = $2 WHERE name = $3", customer.Money, customer.Lost, customer.Name)
 	if err != nil {
 		return fmt.Errorf("cant update customer %s: %v", customer.Name, err)
 	}
@@ -49,7 +49,7 @@ func (c *customerRepository) GetCustomer(ctx context.Context, name string) (mode
 	row := c.db.QueryRowContext(ctx, "SELECT * FROM customers WHERE name = $1", name)
 
 	customer := model.CustomerInfo{}
-	err := row.Scan(&customer.Name, &customer.Money)
+	err := row.Scan(&customer.Name, &customer.Money, &customer.Lost)
 	if err != nil {
 		return model.CustomerInfo{}, fmt.Errorf("cant find customer %s: %v", name, err)
 	}

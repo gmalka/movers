@@ -28,7 +28,7 @@ func (d *doneTasksRepository) CompleteTask(ctx context.Context, workers []string
 	defer tx.Rollback()
 
 	for _, v := range workers {
-		_, err := tx.ExecContext(ctx, "INSERT INTO completetasks VALUES($1,$2,$3,$4)", task.TaskId, v, task.ItemName, task.Weight)
+		_, err := tx.ExecContext(ctx, "INSERT INTO completetasks(workername,itemname,weight) VALUES($1,$2,$3)", v, task.ItemName, task.Weight)
 		if err != nil {
 			return fmt.Errorf("cant add task %s to completetask task: %v", v, err)
 		}

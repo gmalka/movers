@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -17,15 +18,13 @@ func (h Handler) UserMenu(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)
 	if !ok {
-		h.log.Error("Cant take UserInfo from context")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -38,8 +37,7 @@ func (h Handler) UserMenu(w http.ResponseWriter, r *http.Request) {
 		err = fmt.Errorf("unknown role: %v", u.Role)
 	}
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -49,15 +47,13 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)
 	if !ok {
-		h.log.Error("Cant take UserInfo from context")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 	switch u.Role {
@@ -73,29 +69,25 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 		}
 		customer, err := h.users.GetCustomer(r.Context(), u.Name)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		data.Money = customer.Money
 		data.Workers, err = h.users.GetChoosenWorkers(r.Context())
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 		err = tmpl.ExecuteTemplate(w, "aboutme", data)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	case "Worker":
 		worker, err := h.users.GetWorker(r.Context(), u.Name)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -119,14 +111,12 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 
 		err = tmpl.ExecuteTemplate(w, "aboutme", data)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	default:
 		if err != nil {
-			h.log.Error(fmt.Errorf("unknown role: %v", u.Role).Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -135,8 +125,7 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)
 	if !ok {
-		h.log.Error("Cant take UserInfo from context")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, errors.New("cant take UserInfo from context"), http.StatusInternalServerError)
 		return
 	}
 
@@ -144,8 +133,7 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -156,8 +144,7 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	if p != "" {
 		page, err = strconv.Atoi(p)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -168,15 +155,13 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	if u.Role == "Customer" {
 		data, err = h.tasks.GetTasks(r.Context(), page)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	} else {
 		data, err = h.tasks.GetWorkerTasks(r.Context(), u.Name, page)
 		if err != nil {
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	}
@@ -188,8 +173,7 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 		Page:  page,
 		Tasks: data,
 	}); err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -199,8 +183,7 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -208,15 +191,13 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 
 	workers, err := h.users.GetWorkers(r.Context())
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	customer, err := h.users.GetCustomer(r.Context(), name)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -224,19 +205,30 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	task, err := h.tasks.GetFirstTask(r.Context())
+	if err != nil {
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "workerchoose", struct {
-		Message string
-		Money   int
-		Workers []model.WorkerInfo
+		Lost     bool
+		ItemName string
+		Weight   int
+		Message  string
+		Money    int
+		Workers  []model.WorkerInfo
 	}{
-		Message: "",
-		Money:   customer.Money,
-		Workers: workers,
+		Lost:     customer.Lost,
+		ItemName: task.ItemName,
+		Weight:   task.Weight,
+		Message:  "",
+		Money:    customer.Money,
+		Workers:  workers,
 	}); err != nil {
 		h.log.Error(err.Error())
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -245,10 +237,11 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
+	var message string
+
 	err := r.ParseForm()
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -256,66 +249,94 @@ func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		h.log.Info("No worker choosen")
 		v = []string{}
-		// http.Redirect(w, r, StepBack(r.URL.Path), http.StatusSeeOther)
-		// return
 	}
 
 	err = h.users.RechooseWorkers(r.Context(), v)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-
-	workers, err := h.users.GetChoosenWorkers(r.Context())
-	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	task, err := h.tasks.GetFirstTask(r.Context())
-	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	name := chi.URLParam(r, "username")
 
-	err = h.game.CalculateWork(r.Context(), name, workers, task)
+	err = h.game.MakeTaskForCustomer(r.Context(), name)
 	if err != nil {
+		message = fmt.Sprintf("Game ended: %v", err.Error())
 		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	fp := path.Join(h.PathToTemplates()+"/templates/user", "workerchoose.html")
+
+	tmpl, err := template.ParseFiles(fp)
+	if err != nil {
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
-	http.Redirect(w, r, StepBack(r.URL.Path)+"/start", http.StatusSeeOther)
-}
 
-func (h Handler) IterateGame(w http.ResponseWriter, r *http.Request) {
-	name := chi.URLParam(r, "username")
-
-	workers, err := h.users.GetChoosenWorkers(r.Context())
+	customer, err := h.users.GetCustomer(r.Context(), name)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	workers, err := h.users.GetWorkers(r.Context())
+	if err != nil {
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	task, err := h.tasks.GetFirstTask(r.Context())
 	if err != nil {
+		message = "no tasks in the roll"
 		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
 	}
 
-	err = h.game.CalculateWork(r.Context(), name, workers, task)
-	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	fmt.Println("LOST: ", customer.Lost)
+
+	if err := tmpl.ExecuteTemplate(w, "workerchoose", struct {
+		Lost     bool
+		ItemName string
+		Weight   int
+		Message  string
+		Money    int
+		Workers  []model.WorkerInfo
+	}{
+		Lost:     customer.Lost,
+		ItemName: task.ItemName,
+		Weight:   task.Weight,
+		Message:  message,
+		Money:    customer.Money,
+		Workers:  workers,
+	}); err != nil {
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
+
+// func (h Handler) IterateGame(w http.ResponseWriter, r *http.Request) {
+// 	name := chi.URLParam(r, "username")
+
+// 	workers, err := h.users.GetChoosenWorkers(r.Context())
+// 	if err != nil {
+// 		h.log.Error(err.Error())
+// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	task, err := h.tasks.GetFirstTask(r.Context())
+// 	if err != nil {
+// 		h.log.Error(err.Error())
+// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	err = h.game.CalculateWork(r.Context(), name, workers, task)
+// 	if err != nil {
+// 		h.log.Error(err.Error())
+// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// 		return
+// 	}
+// }
 
 func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)

@@ -21,14 +21,12 @@ func (h Handler) MainMenu(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "main", nil); err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -38,14 +36,12 @@ func (h Handler) LoginTemplate(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "login", nil); err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -55,8 +51,7 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err := r.ParseForm()
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -65,8 +60,7 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	tokens, err := h.auth.Login(r.Context(), u.Name, u.Password)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -75,8 +69,7 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	b, err := json.Marshal(tokens)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -99,14 +92,12 @@ func (h Handler) RegisterTemplate(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "register", nil); err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -114,8 +105,7 @@ func (h Handler) RegisterTemplate(w http.ResponseWriter, r *http.Request) {
 func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -126,8 +116,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 	h.log.Info(fmt.Sprintf("Createing user %s", user.Name))
 	err = h.auth.Register(r.Context(), user)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -137,8 +126,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		money, err := strconv.Atoi(r.Form.Get("money"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 		customer.Money = money
@@ -148,8 +136,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		err = h.users.NewCustomer(r.Context(), customer)
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	case "Worker":
@@ -157,8 +144,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		fatigue, err := strconv.Atoi(r.Form.Get("fatigue"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 		worker.Fatigue = fatigue
@@ -166,8 +152,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		salary, err := strconv.Atoi(r.Form.Get("price"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 		worker.Salary = salary
@@ -175,8 +160,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		weight, err := strconv.Atoi(r.Form.Get("weight"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 		worker.CarryWeight = weight
@@ -192,14 +176,12 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		err = h.users.NewWorker(r.Context(), worker)
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.log.Error(err.Error())
-			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			h.HandlerError(w, err, http.StatusInternalServerError)
 			return
 		}
 	default:
 		h.auth.DeleteUser(r.Context(), user.Name)
-		h.log.Error(fmt.Sprintf("Incorrect role: %s", user.Role))
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, fmt.Errorf("incorrect role: %s", user.Role), http.StatusInternalServerError)
 		return
 	}
 
@@ -211,14 +193,12 @@ func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	if err := tmpl.ExecuteTemplate(w, "tasks", nil); err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 }
@@ -226,22 +206,19 @@ func (h Handler) CreateTasksTemplate(w http.ResponseWriter, r *http.Request) {
 func (h Handler) CreateTasks(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	count, err := strconv.Atoi(r.Form.Get("tasks"))
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
 	err = h.tasks.GenerateTasks(r.Context(), count)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 

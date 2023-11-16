@@ -28,6 +28,10 @@ func (t *taskService) CreateItem(ctx context.Context, item model.Item) error {
 }
 
 func (t *taskService) GenerateTasks(ctx context.Context, tocreate int) error {
+	if tocreate < 0 {
+		tocreate = 0
+	}
+	
 	count, err := t.it.GetItemCount(ctx)
 	if err != nil {
 		return fmt.Errorf("cant generate tasks; %v", err)

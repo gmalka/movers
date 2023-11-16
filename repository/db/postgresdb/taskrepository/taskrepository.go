@@ -42,7 +42,7 @@ func (t *taskRepository) CreateTasks(ctx context.Context, tasks []model.Task) er
 }
 
 func (t *taskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
-	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks LIMIT 1")
+	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks ORDER BY id LIMIT 1")
 	task := model.Task{}
 
 	err := row.Scan(&task.TaskId, &task.ItemName, &task.Weight)

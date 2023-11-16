@@ -2,6 +2,7 @@ package workservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gmalka/movers/model"
@@ -21,21 +22,53 @@ func NewWorkService(customers customerGetter, workers workerGetter, tasker taskF
 	}
 }
 
-func (w *workService) CalculateWork(ctx context.Context, customername string, workers []model.WorkerInfo, task model.Task) error {
+func (w *workService) MakeTaskForCustomer(ctx context.Context, customername string) error {
+	task, err := w.tasker.GetFirstTask(ctx)
+	if err != nil {
+		return fmt.Errorf("cant calculate work: %v", err)
+	}
+
+	workers, err := w.workers.GetChoosenWorkers(ctx)
+	if err != nil {
+		return fmt.Errorf("cant calculate work: %v", err)
+	}
+
 	customer, err := w.customers.GetCustomer(ctx, customername)
 	if err != nil {
 		return fmt.Errorf("cant calculate work: %v", err)
+	}
+
+	if customer.Lost {
+		return errors.New("user already loose")
 	}
 
 	salarySum := 0
 	liftingCapacity := 0
 	for _, v := range workers {
 		salarySum += v.Salary
-		liftingCapacity += v.CarryWeight * (100 - v.Fatigue/100) * (v.Drunk * 100)
+		if v.Drunk == 1 {
+			liftingCapacity += int(float64(v.CarryWeight) * ((100 - float64(v.Fatigue))/100))
+		} else {
+			liftingCapacity += int(float64(v.CarryWeight) * ((100 - float64(v.Fatigue))/100) * (float64(50) / 100))
+		}
+	}
+
+	if liftingCapacity < task.Weight {
+		customer.Lost = true
+		err = w.customers.UpdateCustomer(ctx, customer)
+		if err != nil {
+			return fmt.Errorf("cant calculate work: %v", err)
+		}
+		return fmt.Errorf("workers have not enough lifting capacity: have %v, want %v", liftingCapacity, task.Weight)
 	}
 
 	if customer.Money < salarySum {
-		return fmt.Errorf("user %s has not enought money", customer.Name)
+		customer.Lost = true
+		err = w.customers.UpdateCustomer(ctx, customer)
+		if err != nil {
+			return fmt.Errorf("cant calculate work: %v", err)
+		}
+		return fmt.Errorf("user %s has not enought money: have %v, want %v", customer.Name, liftingCapacity, task.Weight)
 	}
 
 	customer.Money -= salarySum
@@ -62,7 +95,7 @@ func (w *workService) CalculateWork(ctx context.Context, customername string, wo
 
 	err = w.tasker.FinishTask(ctx, tasknames, task)
 	if err != nil {
-		return fmt.Errorf("cant calculate work4: %v", err)
+		return fmt.Errorf("cant calculate work: %v", err)
 	}
 
 	return nil
@@ -77,9 +110,11 @@ type customerGetter interface {
 
 type workerGetter interface {
 	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
+	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	UpdateWorker(ctx context.Context, worker model.WorkerInfo) error
 }
 
 type taskFinisher interface {
 	FinishTask(ctx context.Context, workers []string, task model.Task) error
+	GetFirstTask(ctx context.Context) (model.Task, error)
 }

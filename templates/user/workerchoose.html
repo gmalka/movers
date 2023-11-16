@@ -9,13 +9,14 @@
 <body>
     <p style="margin-left: 1em;" >My Money:{{ .Money}}</p>
     <p style="margin-left: 1em;" ><a id="back" href="">Back</a></p>
+    <p style="margin-left: 1.5em;" >Current Task: name - {{ .ItemName}}; weight - {{ .Weight}}kg</p>
 
     {{if .Message}}
         <p>Message: {{ .Message}}</p>
     {{end}}
 
     {{if .Workers}}
-        <form id="workerChooseForm" name="newLoginForm" action="/" method="get">
+        <form id="workerChooseForm" name="newLoginForm" action="/" method="post">
             {{range .Workers}}
                 {{if .Choosen}}
                     <label style="margin-left: 1.5em;"><input name="selectedWorkers" value="{{ .Name }}" type="checkbox" checked>Name: {{ .Name}}, Salary: {{ .Salary}}, Fatigue: {{ .Fatigue}}, Carry Weight: {{ .CarryWeight}}, Drunk: {{if eq .Drunk 1}}false{{else}}true{{end}}</label><br>
@@ -23,7 +24,11 @@
                     <label style="margin-left: 1.5em;"><input name="selectedWorkers" value="{{ .Name }}" type="checkbox">Name: {{ .Name}}, Salary: {{ .Salary}}, Fatigue: {{ .Fatigue}}, Carry Weight: {{ .CarryWeight}}, Drunk: {{if eq .Drunk 1}}false{{else}}true{{end}}</label><br>
                 {{end}}
             {{end}}
-            <button style="margin-left: 1em; margin-top: 1em;" type="submit">Play!</button>
+            {{if .Lost}}
+                <p style="margin-left: 1.5em;" >You are loose the game;)</p>
+            {{else}}
+                <button style="margin-left: 1em; margin-top: 1em;" type="submit">Play!</button>
+            {{end}}
         </form>
     {{else}}
 		<p>No workers left</p>

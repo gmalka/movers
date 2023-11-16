@@ -63,6 +63,9 @@ func (h Handler) Init() http.Handler {
 
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
 
+	r.Post("/refresh", h.refreshAccessToken)
+	r.Post("/access", h.refreshRefreshToken)
+
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(h.checkAccess)
 
@@ -70,12 +73,17 @@ func (h Handler) Init() http.Handler {
 		r.Get("/me", h.AboutMe)
 		r.Get("/tasks", h.GetTasks)
 		r.Get("/start", h.StartGame)
-		r.Get("/iterate", h.ChoosewWorkers)
+		r.Post("/iterate", h.ChoosewWorkers)
 		r.Delete("/delete", h.DeleteUser)
 		r.Get("/exit", h.Exit)
 	})
 
 	return r
+}
+
+func (h Handler) HandlerError(w http.ResponseWriter, err error, status int) {
+	h.log.Error(err.Error())
+	http.Error(w, http.StatusText(status), status)
 }
 
 func StepBack(url string) string {
@@ -95,7 +103,7 @@ func StepBack(url string) string {
 // <----------------INTERFACES---------------->
 
 type WorkService interface {
-	CalculateWork(ctx context.Context, customername string, workers []model.WorkerInfo, task model.Task) error
+	MakeTaskForCustomer(ctx context.Context, customername string) error
 }
 
 type UserService interface {
@@ -109,7 +117,6 @@ type UserService interface {
 
 	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	RechooseWorkers(ctx context.Context, workers []string) error
-	UnchooseWorkers(ctx context.Context, workers []string) error
 }
 
 type TaskService interface {

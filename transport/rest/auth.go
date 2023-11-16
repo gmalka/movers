@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -43,4 +44,40 @@ func (h Handler) checkAccess(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserRequest{}, u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (h Handler) refreshAccessToken(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	refresh := struct{
+		RefreshToken string `json:"refresh_token"`
+	}{}
+
+	access := struct{
+		AccessToken string `json:"access_token"`
+	}{}
+
+	access.AccessToken, err = h.auth.UpdateAccessToken(refresh.RefreshToken)
+	if err != nil {
+		h.HandlerError(w, err, http.StatusBadRequest)
+	}
+
+	b, _ := json.Marshal(access)
+	w.Write(b)
+}
+
+func (h Handler) refreshRefreshToken(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	refresh := struct{
+		RefreshToken string `json:"refresh_token"`
+	}{}
+
+	refresh.RefreshToken, err = h.auth.UpdateRefreshToken(refresh.RefreshToken)
+	if err != nil {
+		h.HandlerError(w, err, http.StatusBadRequest)
+	}
+
+	b, _ := json.Marshal(refresh)
+	w.Write(b)
 }
