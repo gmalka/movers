@@ -113,7 +113,6 @@ type UserService interface {
 	NewWorker(ctx context.Context, worker model.WorkerInfo) error
 	GetWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	GetWorker(ctx context.Context, name string) (model.WorkerInfo, error)
-	DeleteWorker(ctx context.Context, name string) error
 
 	GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error)
 	RechooseWorkers(ctx context.Context, workers []string) error
@@ -124,7 +123,6 @@ type TaskService interface {
 	GetFirstTask(ctx context.Context) (model.Task, error)
 	GetTasks(ctx context.Context, page int) ([]model.Task, error)
 	GetWorkerTasks(ctx context.Context, name string, page int) ([]model.Task, error)
-	FinishTask(ctx context.Context, workers []string, task model.Task) error
 }
 
 type AuthService interface {
@@ -136,5 +134,4 @@ type AuthService interface {
 	UpdateAccessToken(token string) (string, error)
 
 	GetAccessTTL() time.Duration
-	GetRefreshTTL() time.Duration
 }

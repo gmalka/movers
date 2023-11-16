@@ -36,7 +36,7 @@ func (u *userInfoService) GetCustomer(ctx context.Context, name string) (model.C
 	return u.customers.GetCustomer(ctx, name)
 }
 
-func (u *userInfoService) DeleteCustomer(ctx context.Context, name string)  error {
+func (u *userInfoService) DeleteCustomer(ctx context.Context, name string) error {
 	err := u.workers.UnchooseAll(ctx)
 	if err != nil {
 		return fmt.Errorf("cant delete customer: %v", err)
@@ -64,10 +64,6 @@ func (u *userInfoService) GetWorkers(ctx context.Context) ([]model.WorkerInfo, e
 	return u.workers.GetWorkers(ctx)
 }
 
-func (u *userInfoService) DeleteWorker(ctx context.Context, name string) error {
-	return u.workers.DeleteWorker(ctx, name)
-}
-
 func (u *userInfoService) GetChoosenWorkers(ctx context.Context) ([]model.WorkerInfo, error) {
 	return u.workers.GetChoosenWorkers(ctx)
 }
@@ -81,7 +77,7 @@ func (u *userInfoService) RechooseWorkers(ctx context.Context, workers []string)
 type customerStorage interface {
 	CreateCustomer(ctx context.Context, customer model.CustomerInfo) error
 	GetCustomer(ctx context.Context, name string) (model.CustomerInfo, error)
-	DeleteCustomer(ctx context.Context, name string)  error 
+	DeleteCustomer(ctx context.Context, name string) error
 }
 
 type workerStorage interface {

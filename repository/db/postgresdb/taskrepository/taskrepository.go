@@ -53,18 +53,6 @@ func (t *taskRepository) GetFirstTask(ctx context.Context) (model.Task, error) {
 	return task, nil
 }
 
-// func (t *TaskRepository) GetTask(ctx context.Context, id int) (model.Task, error) {
-// 	row := t.db.QueryRowContext(ctx, "SELECT * FROM tasks WHERE id=$1", id)
-// 	task := model.Task{}
-
-// 	err := row.Scan(&task.TaskId, &task.ItemName, &task.Weight)
-// 	if err != nil {
-// 		return model.Task{}, fmt.Errorf("cant get first task; %v", err)
-// 	}
-
-// 	return task, nil
-// }
-
 func (t *taskRepository) GetTasks(ctx context.Context, page int) ([]model.Task, error) {
 	page -= 1
 	if page < 0 {
@@ -72,7 +60,7 @@ func (t *taskRepository) GetTasks(ctx context.Context, page int) ([]model.Task, 
 	}
 
 	tasks := make([]model.Task, 0, 10)
-	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks LIMIT $1 OFFSET $2", pageLimit, page * pageLimit)
+	rows, err := t.db.QueryContext(ctx, "SELECT * FROM tasks LIMIT $1 OFFSET $2", pageLimit, page*pageLimit)
 	if err != nil {
 		return nil, fmt.Errorf("cant select tasks: %v", err)
 	}
@@ -95,15 +83,6 @@ func (t *taskRepository) DeleteTask(ctx context.Context, taskId int) error {
 	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks WHERE id=$1", taskId)
 	if err != nil {
 		return fmt.Errorf("cant delete task %d: %v", taskId, err)
-	}
-
-	return nil
-}
-
-func (t *taskRepository) DeleteTasks(ctx context.Context, ) error {
-	_, err := t.db.ExecContext(ctx, "DELETE FROM tasks")
-	if err != nil {
-		return fmt.Errorf("cant delete tasks: %v", err)
 	}
 
 	return nil

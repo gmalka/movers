@@ -43,7 +43,7 @@ func (u *userRepository) GetUser(ctx context.Context, name string) (model.User, 
 	return user, nil
 }
 
-func (u *userRepository) CheckForCustomerRole(ctx context.Context, ) error {
+func (u *userRepository) CheckForCustomerRole(ctx context.Context) error {
 	var name string
 	row := u.db.QueryRowContext(ctx, "SELECT name FROM users WHERE role=$1", "Customer")
 
@@ -55,7 +55,7 @@ func (u *userRepository) CheckForCustomerRole(ctx context.Context, ) error {
 	return nil
 }
 
-func (u *userRepository) DeleteUser(ctx context.Context, name string)  error {
+func (u *userRepository) DeleteUser(ctx context.Context, name string) error {
 	_, err := u.db.ExecContext(ctx, "DELETE FROM users WHERE name=$1", name)
 	if err != nil {
 		return fmt.Errorf("cant delete user %s: %v", name, err)

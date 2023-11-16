@@ -110,27 +110,6 @@ func (w *workerRepository) RechooseWorkers(ctx context.Context, workers []string
 	return nil
 }
 
-// func (w *workerRepository) UnchooseWorkers(ctx context.Context, workers []string) error {
-// 	tx, err := w.db.BeginTx(ctx, nil)
-// 	if err != nil {
-// 		return fmt.Errorf("cant start transaction: %v", err)
-// 	}
-// 	defer tx.Rollback()
-
-// 	for _, v := range workers {
-// 		_, err := tx.ExecContext(ctx, "UPDATE workers SET choosen = $1 WHERE name = $2", false, v)
-// 		if err != nil {
-// 			return fmt.Errorf("cant choose %s: %v", v, err)
-// 		}
-// 	}
-
-// 	err = tx.Commit()
-// 	if err != nil {
-// 		return fmt.Errorf("cant commit tasks transaction: %v", err)
-// 	}
-// 	return nil
-// }
-
 func (w *workerRepository) UnchooseAll(ctx context.Context) error {
 	_, err := w.db.ExecContext(ctx, "UPDATE workers SET choosen = $1", false)
 	if err != nil {
