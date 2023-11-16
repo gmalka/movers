@@ -1,0 +1,26 @@
+{{define "token"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tokens</title>
+</head>
+<body>
+
+<p>Access Token: {{ .AccessToken}}</p>
+<p>Refresh Token: {{ .RefreshToken}}</p>
+
+<p><a id="login" style="margin-left: 1.5em;" href="{{ .Href}}">Login</a></p>
+<p><a id="back" style="margin-left: 1.5em;" href="">Back</a></p>
+
+<script>
+    var currentUrl = window.location.href;
+
+    var back = document.getElementById("back");
+
+    var paths = currentUrl.split("/");
+    back.href = paths.slice(0, paths.length - 1).join("/");
+</script>
+</body>
+</html>
+{{end}}

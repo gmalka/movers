@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -60,20 +59,33 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	tokens, err := h.auth.Login(r.Context(), u.Name, u.Password)
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	cookie := CreateBearerTokenCookie(tokens.AccessToken, "access_token", "/" + u.Name, time.Now().Add(h.auth.GetAccessTTL()*time.Minute))
+	cookie := CreateBearerTokenCookie(tokens.AccessToken, "access_token", "/"+u.Name, time.Now().Add(h.auth.GetAccessTTL()*time.Minute))
 	http.SetCookie(w, cookie)
 
-	b, err := json.Marshal(tokens)
+	fp := path.Join(h.PathToTemplates()+"/templates/mainmenu", "tokenpage.html")
+
+	tmpl, err := template.ParseFiles(fp)
 	if err != nil {
 		h.HandlerError(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(b)
+	if err := tmpl.ExecuteTemplate(w, "token", struct {
+		AccessToken  string
+		RefreshToken string
+		Href         string
+	}{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		Href:         fmt.Sprintf("%v/%v", StepBack(r.URL.Path), u.Name),
+	}); err != nil {
+		h.HandlerError(w, err, http.StatusInternalServerError)
+		return
+	}
 }
 
 func CreateBearerTokenCookie(token, tokenname, path string, expiration time.Time) *http.Cookie {
@@ -116,7 +128,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 	h.log.Info(fmt.Sprintf("Createing user %s", user.Name))
 	err = h.auth.Register(r.Context(), user)
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -126,7 +138,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		money, err := strconv.Atoi(r.Form.Get("money"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 		customer.Money = money
@@ -136,7 +148,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		err = h.users.NewCustomer(r.Context(), customer)
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	case "Worker":
@@ -144,7 +156,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		fatigue, err := strconv.Atoi(r.Form.Get("fatigue"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 		worker.Fatigue = fatigue
@@ -152,7 +164,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		salary, err := strconv.Atoi(r.Form.Get("price"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 		worker.Salary = salary
@@ -160,7 +172,7 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		weight, err := strconv.Atoi(r.Form.Get("weight"))
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 		worker.CarryWeight = weight
@@ -176,12 +188,12 @@ func (h Handler) Regsiter(w http.ResponseWriter, r *http.Request) {
 		err = h.users.NewWorker(r.Context(), worker)
 		if err != nil {
 			h.auth.DeleteUser(r.Context(), user.Name)
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	default:
 		h.auth.DeleteUser(r.Context(), user.Name)
-		h.HandlerError(w, fmt.Errorf("incorrect role: %s", user.Role), http.StatusInternalServerError)
+		h.HandlerError(w, fmt.Errorf("incorrect role: %s", user.Role), http.StatusBadRequest)
 		return
 	}
 
@@ -212,7 +224,7 @@ func (h Handler) CreateTasks(w http.ResponseWriter, r *http.Request) {
 
 	count, err := strconv.Atoi(r.Form.Get("tasks"))
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 

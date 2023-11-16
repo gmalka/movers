@@ -52,6 +52,7 @@ func (h Handler) Init() http.Handler {
 	r.Use(middleware.Logger)
 
 	r.Get("/", h.MainMenu)
+	
 	r.Get("/login", h.LoginTemplate)
 	r.Post("/login", h.Login)
 
@@ -62,9 +63,6 @@ func (h Handler) Init() http.Handler {
 	r.Post("/tasks", h.CreateTasks)
 
 	r.Get("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {})
-
-	r.Post("/refresh", h.refreshAccessToken)
-	r.Post("/access", h.refreshRefreshToken)
 
 	r.Route("/{username}", func(r chi.Router) {
 		r.Use(h.checkAccess)
@@ -77,6 +75,9 @@ func (h Handler) Init() http.Handler {
 		r.Delete("/delete", h.DeleteUser)
 		r.Get("/exit", h.Exit)
 	})
+
+	r.Post("/refresh", h.refreshAccessToken)
+	r.Post("/access", h.refreshRefreshToken)
 
 	return r
 }

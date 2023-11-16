@@ -1,4 +1,4 @@
-package app
+package application
 
 import (
 	"fmt"
@@ -32,8 +32,8 @@ func Run() {
 	}
 
 	conn, err := postgresdb.NewPostgresConnect(
-		postgresdb.Host("db"),
-		postgresdb.Port("5432"),
+		postgresdb.Host(os.Getenv("DB_HOST")),
+		postgresdb.Port(os.Getenv("DB_PORT")),
 	)
 	if err != nil {
 		fmt.Println(err)

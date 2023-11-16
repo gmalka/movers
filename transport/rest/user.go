@@ -69,7 +69,7 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 		}
 		customer, err := h.users.GetCustomer(r.Context(), u.Name)
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 	case "Worker":
 		worker, err := h.users.GetWorker(r.Context(), u.Name)
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 
@@ -116,7 +116,7 @@ func (h Handler) AboutMe(w http.ResponseWriter, r *http.Request) {
 		}
 	default:
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	}
@@ -144,7 +144,7 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	if p != "" {
 		page, err = strconv.Atoi(p)
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	}
@@ -155,13 +155,13 @@ func (h Handler) GetTasks(w http.ResponseWriter, r *http.Request) {
 	if u.Role == "Customer" {
 		data, err = h.tasks.GetTasks(r.Context(), page)
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	} else {
 		data, err = h.tasks.GetWorkerTasks(r.Context(), u.Name, page)
 		if err != nil {
-			h.HandlerError(w, err, http.StatusInternalServerError)
+			h.HandlerError(w, err, http.StatusBadRequest)
 			return
 		}
 	}
@@ -187,8 +187,6 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(r.Form)
-
 	workers, err := h.users.GetWorkers(r.Context())
 	if err != nil {
 		h.HandlerError(w, err, http.StatusInternalServerError)
@@ -197,7 +195,7 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.users.GetCustomer(r.Context(), name)
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -237,7 +235,7 @@ func (h Handler) StartGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
-	var message string
+	message := "Success!"
 
 	err := r.ParseForm()
 	if err != nil {
@@ -253,16 +251,20 @@ func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
 
 	err = h.users.RechooseWorkers(r.Context(), v)
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	name := chi.URLParam(r, "username")
 
-	err = h.game.MakeTaskForCustomer(r.Context(), name)
-	if err != nil {
-		message = fmt.Sprintf("Game ended: %v", err.Error())
-		h.log.Error(err.Error())
+	if len(v) != 0 {
+		err = h.game.MakeTaskForCustomer(r.Context(), name)
+		if err != nil {
+			message = fmt.Sprintf("Game ended, %v", err.Error())
+			h.log.Error(err.Error())
+		}
+	} else {
+		message = "No one worker was choosen"
 	}
 
 	fp := path.Join(h.PathToTemplates()+"/templates/user", "workerchoose.html")
@@ -275,7 +277,7 @@ func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
 
 	customer, err := h.users.GetCustomer(r.Context(), name)
 	if err != nil {
-		h.HandlerError(w, err, http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -290,8 +292,6 @@ func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
 		message = "no tasks in the roll"
 		h.log.Error(err.Error())
 	}
-
-	fmt.Println("LOST: ", customer.Lost)
 
 	if err := tmpl.ExecuteTemplate(w, "workerchoose", struct {
 		Lost     bool
@@ -313,56 +313,27 @@ func (h Handler) ChoosewWorkers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (h Handler) IterateGame(w http.ResponseWriter, r *http.Request) {
-// 	name := chi.URLParam(r, "username")
-
-// 	workers, err := h.users.GetChoosenWorkers(r.Context())
-// 	if err != nil {
-// 		h.log.Error(err.Error())
-// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	task, err := h.tasks.GetFirstTask(r.Context())
-// 	if err != nil {
-// 		h.log.Error(err.Error())
-// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	err = h.game.CalculateWork(r.Context(), name, workers, task)
-// 	if err != nil {
-// 		h.log.Error(err.Error())
-// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-// 		return
-// 	}
-// }
-
 func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)
 	if !ok {
-		h.log.Error("Cant take UserInfo from context")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, errors.New("cant take UserInfo from context"), http.StatusInternalServerError)
 		return
 	}
 
 	if u.Role != "Customer" {
-		h.log.Error("Try to delete worker")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, errors.New("try to delete worker"), http.StatusBadRequest)
 		return
 	}
 
 	err := h.auth.DeleteUser(r.Context(), u.Name)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
 	err = h.users.DeleteCustomer(r.Context(), u.Name)
 	if err != nil {
-		h.log.Error(err.Error())
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -375,8 +346,7 @@ func (h Handler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (h Handler) Exit(w http.ResponseWriter, r *http.Request) {
 	u, ok := r.Context().Value(UserRequest{}).(model.UserInfo)
 	if !ok {
-		h.log.Error("Cant take UserInfo from context")
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		h.HandlerError(w, errors.New("cant take UserInfo from context"), http.StatusInternalServerError)
 		return
 	}
 

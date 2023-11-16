@@ -1,7 +1,7 @@
 package main
 
-import "github.com/gmalka/movers/app"
+import "github.com/gmalka/movers/application"
 
 func main() {
-	app.Run()
+	application.Run()
 }

@@ -97,6 +97,10 @@ func (a *authService) Login(ctx context.Context, username, password string) (mod
 
 func (a *authService) Register(ctx context.Context, user model.User) error {
 	var err error
+	
+	if user.Name == "" || user.Password == "" || (user.Role != "Customer" && user.Role != "Worker") {
+		return fmt.Errorf("wrong input data")
+	}
 
 	if user.Role == "Customer" {
 		err = a.us.CheckForCustomerRole(ctx)
